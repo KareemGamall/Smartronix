@@ -34,7 +34,7 @@
                         <% products.forEach(product => { %>
                             <tr data-product-id="<%= product._id %>">
                                 <td>
-                                    <img src="<%= product.image %>" alt="<%= product.name %>" style="width: 50px; height: 50px; object-fit: cover;">
+                                    <img src="<%= product.imageUrl %>" alt="<%= product.name %>" style="width: 50px; height: 50px; object-fit: cover;">
                                 </td>
                                 <td><%= product.name %></td>
                                 <td>$<%= product.price.toFixed(2) %></td>
@@ -98,8 +98,8 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="image" class="form-label">Image URL</label>
-                                <input type="url" class="form-control" id="image" required>
+                                <label for="imageUrl" class="form-label">Image URL</label>
+                                <input type="url" class="form-control" id="imageUrl" required>
                                 <div class="mt-2">
                                     <img id="imagePreview" src="" alt="Product Preview" style="max-width: 200px; max-height: 200px; display: none;">
                                 </div>
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add image preview functionality
-    const imageInput = document.getElementById('image');
+    const imageInput = document.getElementById('imageUrl');
     if (imageInput) {
         imageInput.addEventListener('input', function(e) {
             const preview = document.getElementById('imagePreview');
@@ -172,7 +172,7 @@ async function editProduct(productId) {
         const priceInput = document.getElementById('price');
         const categoryInput = document.getElementById('category');
         const stockInput = document.getElementById('stock');
-        const imageInput = document.getElementById('image');
+        const imageInput = document.getElementById('imageUrl');
         const descriptionInput = document.getElementById('description');
         const preview = document.getElementById('imagePreview');
         
@@ -182,12 +182,12 @@ async function editProduct(productId) {
         if (priceInput) priceInput.value = product.price;
         if (categoryInput) categoryInput.value = product.category ? (product.category._id || product.category) : '';
         if (stockInput) stockInput.value = product.stockQuantity;
-        if (imageInput) imageInput.value = product.image;
+        if (imageInput) imageInput.value = product.imageUrl;
         if (descriptionInput) descriptionInput.value = product.description;
         
         // Show image preview
         if (preview) {
-            preview.src = product.image;
+            preview.src = product.imageUrl;
             preview.style.display = 'block';
         }
         
@@ -238,7 +238,7 @@ async function saveProduct() {
         const price = document.getElementById('price').value.trim();
         const category = document.getElementById('category').value.trim();
         const stock = document.getElementById('stock').value.trim();
-        const image = document.getElementById('image').value.trim();
+        const image = document.getElementById('imageUrl').value.trim();
         const description = document.getElementById('description').value.trim();
 
         // Debug log all form values
@@ -288,7 +288,7 @@ async function saveProduct() {
             price: parseFloat(price),
             category: category,
             stockQuantity: parseInt(stock),
-            image: image,
+            imageUrl: image,
             description: description
         };
 

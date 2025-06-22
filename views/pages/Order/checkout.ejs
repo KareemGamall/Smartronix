@@ -1,109 +1,502 @@
 <%- include('../../partials/header') %>
 
-<div class="container mt-4">
-    <h2>Checkout</h2>
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Order Summary</h5>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Quantity</th>
-                                <th>Price</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+<main>
+    <div class="container">
+        <h2>Checkout</h2>
+        
+        <div class="checkout-container">
+            <div class="order-summary">
+                <section>
+                    <h3>Order Summary</h3>
+                    <div class="order-table">
+                        <div class="table-header">
+                            <div class="col-product">Product</div>
+                            <div class="col-quantity">Quantity</div>
+                            <div class="col-price">Price</div>
+                            <div class="col-total">Total</div>
+                        </div>
+                        <div class="table-body">
                             <% cart.items.forEach(item => { %>
-                                <tr>
-                                    <td><%= item.product.name %></td>
-                                    <td><%= item.quantity %></td>
-                                    <td>$<%= item.price.toFixed(2) %></td>
-                                    <td>$<%= item.total.toFixed(2) %></td>
-                                </tr>
+                                <div class="table-row">
+                                    <div class="col-product">
+                                        <div class="product-info">
+                                            <img src="<%= item.product.imageUrl || '/images/placeholder.jpg' %>" alt="<%= item.product.name %>">
+                                            <span><%= item.product.name %></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-quantity"><%= item.quantity %></div>
+                                    <div class="col-price">$<%= item.price.toFixed(2) %></div>
+                                    <div class="col-total">$<%= item.total.toFixed(2) %></div>
+                                </div>
                             <% }); %>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
-                                <td><strong>$<%= cart.totalAmount.toFixed(2) %></strong></td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="text-end"><strong>Delivery Fee:</strong></td>
-                                <td><strong>$<%= (cart.deliveryFee || 50).toFixed(2) %></strong></td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                                <td><strong>$<%= (cart.grandTotal || (cart.totalAmount + (cart.deliveryFee || 50))).toFixed(2) %></strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                        </div>
+                        <div class="table-footer">
+                            <div class="total-row">
+                                <div class="total-label">Subtotal:</div>
+                                <div class="total-value">$<%= cart.totalAmount.toFixed(2) %></div>
+                            </div>
+                            <div class="total-row">
+                                <div class="total-label">Delivery Fee:</div>
+                                <div class="total-value">$<%= (cart.deliveryFee || 50).toFixed(2) %></div>
+                            </div>
+                            <div class="total-row grand-total">
+                                <div class="total-label">Total:</div>
+                                <div class="total-value">$<%= (cart.grandTotal || (cart.totalAmount + (cart.deliveryFee || 50))).toFixed(2) %></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Delivery Information</h5>
-                    <form action="/order/place" method="post" id="checkoutForm" class="needs-validation" novalidate>
-                        <div class="mb-3">
+            
+            <div class="delivery-info">
+                <section>
+                    <h3>Delivery Information</h3>
+                    <form action="/order/place" method="post" id="checkoutForm" class="checkout-form">
+                        <div class="form-group">
                             <label for="shippingAddress" class="form-label">Shipping Address</label>
-                            <textarea class="form-control" id="shippingAddress" name="shippingAddress" required
-                                      minlength="10" maxlength="200"></textarea>
-                            <div class="invalid-feedback">
+                            <textarea class="form-control" 
+                                      id="shippingAddress" 
+                                      name="shippingAddress" 
+                                      required
+                                      minlength="10" 
+                                      maxlength="200"
+                                      placeholder="Enter your complete shipping address..."></textarea>
+                            <div class="error-message" id="addressError">
                                 Please enter a valid shipping address (10-200 characters).
                             </div>
                         </div>
-                        <div class="mb-3">
+                        
+                        <div class="form-group">
                             <label for="contactPhone" class="form-label">Contact Phone</label>
                             <input type="tel" 
                                    class="form-control" 
                                    id="contactPhone" 
                                    name="contactPhone" 
-                                   pattern="[0-9]{11}"
-                                   minlength="11"
-                                   maxlength="11"
                                    required
-                                   title="Please enter exactly 11 digits">
-                            <div class="invalid-feedback">
+                                   placeholder="Enter 11-digit phone number"
+                                   maxlength="11">
+                            <div class="error-message" id="phoneError">
                                 Phone number must be exactly 11 digits.
                             </div>
                         </div>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> Payment Method: Cash on Delivery
+                        
+                        <div class="payment-info">
+                            <i class="info-icon">ℹ</i>
+                            <span>Payment Method: Cash on Delivery</span>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100" id="submitBtn">Place Order</button>
+                        
+                        <button type="submit" class="btn checkout-btn" id="submitBtn">
+                            Place Order
+                        </button>
                     </form>
-                </div>
+                </section>
             </div>
         </div>
     </div>
-</div>
+</main>
+
+<style>
+/* Checkout specific styles */
+.checkout-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.order-summary section,
+.delivery-info section {
+    margin-bottom: 0;
+}
+
+.order-summary h3,
+.delivery-info h3 {
+    color: var(--primary);
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 0.5rem;
+}
+
+/* Order table styles */
+.order-table {
+    width: 100%;
+}
+
+.table-header,
+.table-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.table-header {
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+    background: var(--background);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    padding: 1rem;
+    margin: 0 -1rem;
+}
+
+.table-row {
+    border-bottom: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.table-row:hover {
+    background: var(--hover-bg);
+    border-radius: var(--radius-md);
+    margin: 0 -1rem;
+    padding: 1rem;
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.product-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.product-info img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--background);
+    padding: 0.25rem;
+}
+
+.col-quantity,
+.col-price,
+.col-total {
+    text-align: center;
+    font-weight: 500;
+}
+
+.col-price,
+.col-total {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Table footer */
+.table-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    font-weight: 500;
+}
+
+.total-row.grand-total {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary);
+    border-top: 1px solid var(--border-color);
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+}
+
+.total-label {
+    color: var(--text-primary);
+}
+
+.total-value {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Form styles */
+.checkout-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.form-control {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--background);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(74, 124, 122, 0.1);
+    background: var(--card-bg);
+    outline: none;
+}
+
+.form-control.error {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+.error-message {
+    color: var(--danger);
+    font-size: 0.85rem;
+    display: none;
+    margin-top: 0.25rem;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* Payment info */
+.payment-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--accent);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    border: 1px solid var(--sage);
+}
+
+.info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: var(--primary);
+    color: var(--white);
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* Checkout button */
+.checkout-btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.checkout-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Loading spinner */
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--white);
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive design */
+@media (max-width: 992px) {
+    .checkout-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .order-summary {
+        order: 2;
+    }
+    
+    .delivery-info {
+        order: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-header,
+    .table-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        text-align: left;
+    }
+    
+    .table-header {
+        display: none;
+    }
+    
+    .table-row {
+        background: var(--hover-bg);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .table-row:hover {
+        margin-bottom: 0.5rem;
+    }
+    
+    .col-product::before {
+        content: "Product: ";
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+    
+    .col-quantity::before {
+        content: "Quantity: ";
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+    
+    .col-price::before {
+        content: "Price: ";
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+    
+    .col-total::before {
+        content: "Total: ";
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+    
+    .col-quantity,
+    .col-price,
+    .col-total {
+        text-align: left;
+    }
+}
+
+@media (max-width: 480px) {
+    .checkout-container {
+        gap: 1rem;
+    }
+    
+    main {
+        padding: 1rem 0.5rem;
+    }
+    
+    .product-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .product-info img {
+        width: 40px;
+        height: 40px;
+    }
+}
+</style>
 
 <script>
 document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    if (!this.checkValidity()) {
-        e.stopPropagation();
-        this.classList.add('was-validated');
+    // Clear previous errors
+    document.querySelectorAll('.error-message').forEach(error => {
+        error.classList.remove('show');
+    });
+    document.querySelectorAll('.form-control').forEach(input => {
+        input.classList.remove('error');
+    });
+    
+    let isValid = true;
+    
+    // Validate shipping address
+    const shippingAddress = document.getElementById('shippingAddress');
+    if (!shippingAddress.value.trim() || shippingAddress.value.trim().length < 10 || shippingAddress.value.trim().length > 200) {
+        document.getElementById('addressError').classList.add('show');
+        shippingAddress.classList.add('error');
+        isValid = false;
+    }
+    
+    // Validate phone number
+    const contactPhone = document.getElementById('contactPhone');
+    const phonePattern = /^[0-9]{11}$/;
+    if (!phonePattern.test(contactPhone.value.replace(/\D/g, ''))) {
+        document.getElementById('phoneError').classList.add('show');
+        contactPhone.classList.add('error');
+        isValid = false;
+    }
+    
+    if (!isValid) {
+        // Scroll to first error
+        const firstError = document.querySelector('.form-control.error');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstError.focus();
+        }
         return;
     }
-
+    
+    // Show loading state
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-
+    submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
+    
+    // Submit form
     this.submit();
 });
 
+// Phone number input formatting
 document.getElementById('contactPhone').addEventListener('input', function(e) {
+    // Remove all non-digits and limit to 11 characters
     this.value = this.value.replace(/\D/g, '').slice(0, 11);
+    
+    // Clear error state when user starts typing
+    if (this.classList.contains('error')) {
+        this.classList.remove('error');
+        document.getElementById('phoneError').classList.remove('show');
+    }
+});
+
+// Address input validation
+document.getElementById('shippingAddress').addEventListener('input', function(e) {
+    // Clear error state when user starts typing
+    if (this.classList.contains('error')) {
+        this.classList.remove('error');
+        document.getElementById('addressError').classList.remove('show');
+    }
 });
 </script>
 
-<%- include('../../partials/footer') %> 
+<%- include('../../partials/footer') %>

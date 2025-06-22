@@ -12,28 +12,270 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
+      :root {
+        --cream: #f5f3f0;
+        --light-teal: #a8c8cc;
+        --medium-teal: #4a9ca0;
+        --dark-teal: #2c6b6e;
+      }
+
       body {
-        background-color: #f8f9fa;
+        background: linear-gradient(135deg, var(--cream) 0%, var(--light-teal) 50%, var(--medium-teal) 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
+
       .login-container {
-        max-width: 400px;
-        margin: 100px auto;
-      }
-      .card {
-        border: none;
-        border-radius: 10px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-      }
-      .card-header {
-        background-color: #fff;
-        border-bottom: none;
-        text-align: center;
+        max-width: 420px;
+        margin: 50px auto;
         padding: 20px;
       }
+
+      .card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(44, 107, 110, 0.15);
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(44, 107, 110, 0.2);
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, var(--medium-teal), var(--dark-teal));
+        border-bottom: none;
+        text-align: center;
+        padding: 30px 20px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: shimmer 3s ease-in-out infinite;
+      }
+
+      @keyframes shimmer {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(180deg); }
+      }
+
+      .card-header h3 {
+        color: white;
+        font-weight: 600;
+        font-size: 2rem;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        position: relative;
+        z-index: 1;
+      }
+
+      .card-body {
+        padding: 40px 30px;
+        background: rgba(255, 255, 255, 0.98);
+      }
+
+      .form-label {
+        color: var(--dark-teal);
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .form-control {
+        border: 2px solid var(--light-teal);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .form-control:focus {
+        border-color: var(--medium-teal);
+        box-shadow: 0 0 0 0.2rem rgba(74, 156, 160, 0.25);
+        background: white;
+        transform: translateY(-2px);
+      }
+
+      .input-group .form-control {
+        border-right: none;
+      }
+
+      .input-group .btn {
+        border: 2px solid var(--light-teal);
+        border-left: none;
+        background: var(--light-teal);
+        color: var(--dark-teal);
+        border-radius: 0 12px 12px 0;
+        transition: all 0.3s ease;
+      }
+
+      .input-group .btn:hover {
+        background: var(--medium-teal);
+        border-color: var(--medium-teal);
+        color: white;
+        transform: translateY(-2px);
+      }
+
+      .form-check-input:checked {
+        background-color: var(--medium-teal);
+        border-color: var(--medium-teal);
+      }
+
+      .form-check-input:focus {
+        box-shadow: 0 0 0 0.2rem rgba(74, 156, 160, 0.25);
+      }
+
+      .form-check-label {
+        color: var(--dark-teal);
+        font-weight: 500;
+      }
+
       .btn-primary {
         width: 100%;
-        padding: 12px;
-        border-radius: 5px;
+        padding: 14px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--medium-teal), var(--dark-teal));
+        border: none;
+        font-weight: 600;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+      }
+
+      .btn-primary:hover::before {
+        left: 100%;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(44, 107, 110, 0.3);
+        background: linear-gradient(135deg, var(--dark-teal), var(--medium-teal));
+      }
+
+      .btn-primary:active {
+        transform: translateY(-1px);
+      }
+
+      .signup-link {
+        color: var(--dark-teal);
+        font-weight: 500;
+      }
+
+      .signup-link a {
+        color: var(--medium-teal);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .signup-link a::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -2px;
+        left: 0;
+        background: var(--medium-teal);
+        transition: width 0.3s ease;
+      }
+
+      .signup-link a:hover::after {
+        width: 100%;
+      }
+
+      .signup-link a:hover {
+        color: var(--dark-teal);
+      }
+
+      .alert {
+        border-radius: 12px;
+        border: none;
+        font-weight: 500;
+        margin-bottom: 20px;
+      }
+
+      .alert-warning {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        color: #856404;
+      }
+
+      .alert-danger {
+        background: linear-gradient(135deg, #f8d7da, #fab1a0);
+        color: #721c24;
+      }
+
+      .alert-success {
+        background: linear-gradient(135deg, var(--light-teal), var(--medium-teal));
+        color: white;
+      }
+
+      /* Floating animation for background elements */
+      body::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 20% 50%, rgba(168, 200, 204, 0.1) 0%, transparent 50%), 
+                    radial-gradient(circle at 80% 20%, rgba(74, 156, 160, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 40% 80%, rgba(44, 107, 110, 0.1) 0%, transparent 50%);
+        animation: float 20s ease-in-out infinite;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: rotate(0deg) scale(1); }
+        33% { transform: rotate(120deg) scale(1.1); }
+        66% { transform: rotate(240deg) scale(0.9); }
+      }
+
+      /* Responsive design */
+      @media (max-width: 576px) {
+        .login-container {
+          margin: 20px auto;
+          padding: 10px;
+        }
+        
+        .card-body {
+          padding: 30px 20px;
+        }
+        
+        .card-header {
+          padding: 25px 20px;
+        }
+        
+        .card-header h3 {
+          font-size: 1.75rem;
+        }
       }
     </style>
   </head>
@@ -44,7 +286,7 @@
           <div class="card-header">
             <h3 class="mb-0">Login</h3>
           </div>
-          <div class="card-body p-4">
+          <div class="card-body">
             <div id="alertContainer"></div>
             <script>
               // Show alert if 'message' is in the URL
@@ -60,7 +302,7 @@
                 document.getElementById('alertContainer').appendChild(alertDiv);
               }
             </script>
-            <form>
+            <form id="loginForm">
               <div class="mb-3">
                 <label for="email" class="form-label">Email address</label>
                 <input
@@ -68,6 +310,7 @@
                   class="form-control"
                   id="email"
                   name="email"
+                  placeholder="Enter your email"
                 />
               </div>
               <div class="mb-3">
@@ -78,13 +321,14 @@
                     class="form-control"
                     id="password"
                     name="password"
+                    placeholder="Enter your password"
                   />
                   <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye"></i>
                   </button>
                 </div>
               </div>
-              <div class="mb-3 form-check">
+              <div class="mb-4 form-check">
                 <input
                   type="checkbox"
                   class="form-check-input"
@@ -96,7 +340,7 @@
               </div>
               <button type="submit" class="btn btn-primary">Login</button>
             </form>
-            <div class="text-center mt-3">
+            <div class="text-center mt-4 signup-link">
               <p class="mb-0">
                 Don't have an account? <a href="/signup">Sign up</a>
               </p>
@@ -154,20 +398,31 @@
             body: JSON.stringify({ email, password }),
           });
           const data = await response.json();
+          console.log('Login response:', data);
           if (!response.ok) {
             showAlert(data.error);
           } else {
             showAlert("Login successful", "success");
-              setTimeout(() => {
-    // Check for redirect parameter in URL
-    const params = new URLSearchParams(window.location.search);
-    const redirectUrl = params.get('redirect');
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
-            } else {
-      window.location.href = "/";
-            }
-  }, 1000);
+            setTimeout(() => {
+              // Check if there's a redirect URL in the response
+              console.log('Checking for redirect in response:', data.redirect);
+              if (data.redirect) {
+                console.log('Redirecting to:', data.redirect);
+                window.location.href = data.redirect;
+              } else {
+                // Check for redirect parameter in URL
+                const params = new URLSearchParams(window.location.search);
+                const redirectUrl = params.get('redirect');
+                console.log('Checking URL params for redirect:', redirectUrl);
+                if (redirectUrl) {
+                  console.log('Redirecting to URL param:', redirectUrl);
+                  window.location.href = redirectUrl;
+                } else {
+                  console.log('No redirect found, going to home');
+                  window.location.href = "/";
+                }
+              }
+            }, 1000);
           }
         } catch (error) {
           console.log(error);

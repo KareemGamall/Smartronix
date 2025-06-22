@@ -13,7 +13,7 @@ const isAuthenticated = async (req, res, next) => {
           message: 'Authentication required' 
         });
       }
-      return res.redirect("/login");
+      return res.redirect(`/login?message=Please+log+in+to+continue&redirect=${encodeURIComponent(req.originalUrl)}`);
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_PHRASE);

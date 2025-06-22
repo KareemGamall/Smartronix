@@ -14,10 +14,11 @@ require('dotenv').config();
 
 // Configuration
 const config = {
-    port: 3000,
-    env: 'development',
-    sessionSecret: 'smartronix-secure-session-key-2024',
-    mongoUri: 'mongodb+srv://Smartronix:Smartronix.DB1@cluster74.qi8xpgn.mongodb.net/smartronics?retryWrites=true&w=majority&appName=Cluster74'
+    port: process.env.PORT || 3000,
+    env: process.env.NODE_ENV || 'development',
+    sessionSecret: process.env.SESSION_SECRET || 'smartronix-secure-session-key-2024',
+    jwtSecret: process.env.JWT_SECRET_PHRASE || 'smartronix-jwt-secret-key-2024',
+    mongoUri: process.env.MONGODB_URI || 'mongodb+srv://Smartronix:Smartronix.DB1@cluster74.qi8xpgn.mongodb.net/smartronics?retryWrites=true&w=majority&appName=Cluster74'
 };
 
 // Connect to database
@@ -79,14 +80,18 @@ const adminRoutes = require('./routes/admin');
 app.use(async (req, res, next) => {
     try {
       const token = req.cookies.token;
+      console.log('JWT Middleware - Token:', token ? 'Present' : 'Not present');
   
       if (!token) {
+        console.log('JWT Middleware - No token, setting user to null');
         res.locals.user = null;
         return next();
       }
   
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_PHRASE);
+      const decoded = jwt.verify(token, config.jwtSecret);
+      console.log('JWT Middleware - Token decoded:', decoded);
       const user = await User.findById(decoded.id);
+      console.log('JWT Middleware - User found:', user ? user.email : 'Not found');
   
       res.locals.user = user || null;
       next();
@@ -117,15 +122,6 @@ app.get("/login" , (req,res)=>{
 app.get("/signup" , (req,res)=>{
     res.render("pages/signup", { layout: false })
 })
-
-// Add a /profile route for all users
-app.get('/profile', (req, res) => {
-    res.render('pages/profile', {
-        title: 'Profile',
-        user: res.locals.user,
-        layout: 'layouts/admin'
-    });
-});
 
 // Error handling
 app.use((err, req, res, next) => {

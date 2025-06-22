@@ -1,4 +1,3 @@
-console.log('products.js route loaded');
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');

@@ -275,6 +275,41 @@ const cartController = {
                 error: error.message
             });
         }
+    },
+
+    async checkout(req, res) {
+        try {
+            // Check if user is authenticated using res.locals.user (set by JWT middleware)
+            if (!res.locals.user) {
+                // The middleware will handle the redirect with the original URL
+                console.log('User not authenticated, middleware will handle redirect');
+                return res.redirect('/login');
+            }
+
+            let cart = await CartHelper.findUserCartWithProducts(req);
+            
+            if (!cart || cart.items.length === 0) {
+                return res.redirect('/cart/view');
+            }
+
+            const cartWithDelivery = {
+                ...(typeof cart.toObject === 'function' ? cart.toObject() : cart),
+                deliveryFee: DELIVERY_FEE,
+                grandTotal: formatPrice((cart.totalAmount || 0) + DELIVERY_FEE)
+            };
+
+            res.render('pages/Order/checkout', { 
+                cart: cartWithDelivery,
+                title: 'Checkout'
+            });
+
+        } catch (error) {
+            console.error('Error in checkout:', error);
+            res.status(500).render('error', { 
+                message: 'Error loading checkout. Please try again later.',
+                error: error.message
+            });
+        }
     }
 };
 

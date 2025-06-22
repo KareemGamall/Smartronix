@@ -168,29 +168,15 @@ class AdminController {
     // Create product
     static async createProduct(req, res) {
         try {
-            console.log('Raw request body:', req.body); // Debug log
-
-            const { name, price, category, stockQuantity, image, description } = req.body;
+            const { name, price, category, stockQuantity, imageUrl, description } = req.body;
             
-            console.log('Parsed product data:', {
-                name,
-                price,
-                category,
-                stockQuantity,
-                image,
-                description
-            });
+            console.log('Received create data:', req.body); // Debug log
 
             // Validate required fields
-            const requiredFields = ['name', 'price', 'category', 'stockQuantity', 'image', 'description'];
-            const missingFields = requiredFields.filter(field => {
-                const value = req.body[field];
-                console.log(`Checking field ${field}:`, value); // Debug log
-                return value === undefined || value === null || value === '';
-            });
+            const requiredFields = ['name', 'price', 'category', 'stockQuantity', 'imageUrl', 'description'];
+            const missingFields = requiredFields.filter(field => !req.body[field]);
             
             if (missingFields.length > 0) {
-                console.log('Missing fields:', missingFields); // Debug log
                 return res.status(400).json({ 
                     success: false, 
                     message: `Missing required fields: ${missingFields.join(', ')}`,
@@ -230,7 +216,7 @@ class AdminController {
                 price: parsedPrice,
                 category,
                 stockQuantity: parsedStock,
-                imageUrl: image,
+                imageUrl: imageUrl,
                 description
             });
 
@@ -253,12 +239,12 @@ class AdminController {
     // Update product
     static async updateProduct(req, res) {
         try {
-            const { name, price, category, stockQuantity, image, description } = req.body;
+            const { name, price, category, stockQuantity, imageUrl, description } = req.body;
             
             console.log('Received update data:', req.body); // Debug log
 
             // Validate required fields
-            const requiredFields = ['name', 'price', 'category', 'stockQuantity', 'image', 'description'];
+            const requiredFields = ['name', 'price', 'category', 'stockQuantity', 'imageUrl', 'description'];
             const missingFields = requiredFields.filter(field => !req.body[field]);
             
             if (missingFields.length > 0) {
@@ -302,7 +288,7 @@ class AdminController {
                     price: parsedPrice,
                     category,
                     stockQuantity: parsedStock,
-                    imageUrl: image,
+                    imageUrl: imageUrl,
                     description
                 },
                 { new: true, runValidators: true }
@@ -663,6 +649,24 @@ class AdminController {
             console.error('Orders Error:', error);
             res.status(500).render('pages/error', {
                 message: 'Error loading orders',
+                error: process.env.NODE_ENV === 'development' ? error : {},
+                layout: false
+            });
+        }
+    }
+
+    // Admin Profile
+    static async getProfile(req, res) {
+        try {
+            res.render('pages/Admin/profile', {
+                title: 'Admin Profile',
+                user: req.user,
+                layout: 'layouts/admin'
+            });
+        } catch (error) {
+            console.error('Profile Error:', error);
+            res.status(500).render('pages/error', {
+                message: 'Error loading profile',
                 error: process.env.NODE_ENV === 'development' ? error : {},
                 layout: false
             });

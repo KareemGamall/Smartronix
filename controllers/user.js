@@ -32,6 +32,16 @@ exports.signup = async (req, res) => {
 
     user.save();
 
+    // Check if there's a return URL stored in session
+    const returnTo = req.session.returnTo;
+    if (returnTo) {
+      delete req.session.returnTo;
+      return res.status(201).json({
+        message: "User registered successfully",
+        redirect: returnTo
+      });
+    }
+
     res.status(201).json({
       message: "User registered successfully",
     });
@@ -47,6 +57,16 @@ exports.signup = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    console.log('Login attempt for email:', email);
+    console.log('Session returnTo:', req.session.returnTo);
+    console.log('URL redirect param:', req.query.redirect);
+
+    // Check if there's a redirect parameter in the URL and store it in session
+    if (req.query.redirect && !req.session.returnTo) {
+      req.session.returnTo = req.query.redirect;
+      console.log('Stored redirect from URL in session:', req.query.redirect);
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -70,16 +90,100 @@ exports.login = async (req, res) => {
       }
     );
 
+    console.log('JWT Secret available:', !!process.env.JWT_SECRET_PHRASE);
+    console.log('Generated token:', token ? 'Token generated' : 'No token');
+
     res.cookie("token", token, {
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
     });
 
+    console.log('Cookie set, checking if it was set properly');
+    console.log('Response headers:', res.getHeaders());
+
+    // Check if there's a return URL stored in session
+    const returnTo = req.session.returnTo;
+    console.log('Found returnTo in session:', returnTo);
+    
+    if (returnTo) {
+      delete req.session.returnTo;
+      console.log('Sending redirect response:', returnTo);
+      return res.status(200).json({ 
+        message: "Login successful",
+        redirect: returnTo
+      });
+    }
+
+    console.log('No redirect, sending normal response');
     res.status(200).json({ message: "Login successful" });
   } catch (error) {
     console.log(error);
     res.status(500).json({
       error: "Error in login",
+    });
+  }
+};
+
+// Update Profile controller
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, phoneNumber, address } = req.body;
+    const userId = req.user._id;
+
+    // Validate required fields
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        error: "Name is required",
+      });
+    }
+
+    // Check if phone number is provided and validate it
+    if (phoneNumber && phoneNumber.trim()) {
+      const phoneRegex = /^(10|11|12|15)\d{8}$/;
+      if (!phoneRegex.test(phoneNumber.trim())) {
+        return res.status(400).json({
+          error: "Please enter a valid Egyptian phone number starting with 10, 11, 12, or 15",
+        });
+      }
+
+      // Check if phone number is already taken by another user
+      const existingPhoneUser = await User.findOne({ 
+        phoneNumber: phoneNumber.trim(),
+        _id: { $ne: userId }
+      });
+      
+      if (existingPhoneUser) {
+        return res.status(400).json({
+          error: "Phone number is already taken by another user",
+        });
+      }
+    }
+
+    // Update user profile
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        name: name.trim(),
+        phoneNumber: phoneNumber ? phoneNumber.trim() : req.user.phoneNumber,
+        address: address ? address.trim() : req.user.address
+      },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: "Error updating profile",
     });
   }
 };

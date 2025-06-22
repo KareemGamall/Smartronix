@@ -27,6 +27,9 @@ router.delete('/products/:id', AdminController.deleteProduct);
 // Order Management
 router.get('/orders', AdminController.getOrders);
 
+// Admin Profile
+router.get('/profile', AdminController.getProfile);
+
 // Test Order
 router.post('/test-order', AdminController.createTestOrder);
 

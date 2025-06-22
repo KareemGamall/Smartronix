@@ -1,0 +1,383 @@
+<%- include('../../partials/header') %>
+
+<style>
+    /* Additional styles specific to profile page */
+
+        /* Card Styles - Enhanced for profile page */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            background: var(--background);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+        }
+
+        .card-header h3 {
+            color: var(--primary);
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        /* Form Styles */
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-control {
+            background: var(--background);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1rem;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 124, 122, 0.1);
+            background: var(--card-bg);
+            outline: none;
+        }
+
+        .form-control:read-only {
+            background: var(--hover-bg);
+            cursor: not-allowed;
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-text {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--teal);
+            color: var(--white);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            background: var(--gray-medium);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Alert Styles */
+        .alert {
+            border-radius: var(--radius-md);
+            border: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .alert-success {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .alert-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .alert-info {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: inherit;
+            opacity: 0.7;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0;
+        }
+
+        .btn-close:hover {
+            opacity: 1;
+        }
+
+        /* Loading Spinner */
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.1em;
+        }
+
+        .spinner-border {
+            display: inline-block;
+            border: 0.2em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            background: var(--hover-bg);
+            color: var(--primary);
+        }
+
+        /* Footer */
+        
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem 0;
+            }
+            
+            .card-body {
+                padding: 1.5rem;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Main Content -->
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 mx-auto">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-user me-2"></i>User Profile</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="alertContainer"></div>
+                            
+                            <form id="profileForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">
+                                                <i class="fas fa-user me-2"></i>Full Name
+                                            </label>
+                                            <input type="text" class="form-control" id="name" name="name" 
+                                                   value="<%= user.name %>" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">
+                                                <i class="fas fa-envelope me-2"></i>Email
+                                            </label>
+                                            <input type="email" class="form-control" id="email" name="email" 
+                                                   value="<%= user.email %>" readonly>
+                                            <small class="form-text text-muted">Email cannot be changed</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="phoneNumber" class="form-label">
+                                                <i class="fas fa-phone me-2"></i>Phone Number
+                                            </label>
+                                            <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" 
+                                                   value="<%= user.phoneNumber || '' %>" 
+                                                   placeholder="Enter your phone number">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="address" class="form-label">
+                                                <i class="fas fa-map-marker-alt me-2"></i>Address
+                                            </label>
+                                            <textarea class="form-control" id="address" name="address" rows="3" 
+                                                      placeholder="Enter your address"><%= user.address || '' %></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button type="submit" class="btn btn-primary" id="updateBtn">
+                                        <i class="fas fa-save me-2"></i>Update Profile
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileForm = document.getElementById('profileForm');
+            const alertContainer = document.getElementById('alertContainer');
+            const updateBtn = document.getElementById('updateBtn');
+            const themeToggle = document.getElementById('themeToggle');
+
+            // Only add theme toggle if it exists (in case header doesn't have it)
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function() {
+                    const currentTheme = document.documentElement.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    
+                    const icon = themeToggle.querySelector('i');
+                    if (newTheme === 'dark') {
+                        icon.className = 'fas fa-sun';
+                    } else {
+                        icon.className = 'fas fa-moon';
+                    }
+                });
+            }
+
+            function showAlert(message, type = 'info') {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
+                    <span>${message}</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                alertContainer.innerHTML = '';
+                alertContainer.appendChild(alertDiv);
+                
+                // Auto dismiss after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
+
+            profileForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                updateBtn.disabled = true;
+                updateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+                
+                const formData = {
+                    name: document.getElementById('name').value.trim(),
+                    phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                    address: document.getElementById('address').value.trim()
+                };
+
+                try {
+                    // Simulate API call for demo
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    // Simulate successful response
+                    const success = Math.random() > 0.3; // 70% success rate for demo
+                    
+                    if (success) {
+                        showAlert('Profile updated successfully!', 'success');
+                    } else {
+                        showAlert('Failed to update profile. Please try again.', 'danger');
+                    }
+
+                    // In real implementation, replace with actual API call:
+                    /*
+                    const response = await fetch('/api/user/update-profile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showAlert('Profile updated successfully!', 'success');
+                    } else {
+                        showAlert(data.error || 'Failed to update profile', 'danger');
+                    }
+                    */
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    showAlert('An error occurred while updating your profile', 'danger');
+                } finally {
+                    // Reset button state
+                    updateBtn.disabled = false;
+                    updateBtn.innerHTML = '<i class="fas fa-save me-2"></i>Update Profile';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
