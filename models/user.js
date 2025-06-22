@@ -26,12 +26,14 @@ const UserSchema = new mongoose.Schema(
     },
     phoneNumber: {
       type: String,
-      required: [true, "Phone number is required"],
-      match: [
-        /^(10|11|12|15)\d{8}$/,
-        "Please enter a valid Egyptian phone number starting with 10, 11, 12, or 15",
-      ],
-      unique: true,
+      validate: {
+        validator: function(v) {
+          // Allows empty string or a 10-digit number
+          return v === null || v === '' || /^\d{10}$/.test(v);
+        },
+        message: props => `${props.value} is not a valid phone number! Must be 10 digits.`
+      },
+      trim: true
     },
     address: {
       type: String,

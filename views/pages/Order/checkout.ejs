@@ -52,31 +52,74 @@
                 <section>
                     <h3>Delivery Information</h3>
                     <form action="/order/place" method="post" id="checkoutForm" class="checkout-form">
-                        <div class="form-group">
-                            <label for="shippingAddress" class="form-label">Shipping Address</label>
-                            <textarea class="form-control" 
-                                      id="shippingAddress" 
-                                      name="shippingAddress" 
-                                      required
-                                      minlength="10" 
-                                      maxlength="200"
-                                      placeholder="Enter your complete shipping address..."></textarea>
-                            <div class="error-message" id="addressError">
-                                Please enter a valid shipping address (10-200 characters).
+                        
+                        <!-- Address Section -->
+                        <div class="form-section">
+                            <h4>Shipping Address</h4>
+                            <div class="choice-group">
+                                <div class="choice-option">
+                                    <input type="radio" id="useAccountAddress" name="addressChoice" value="account" checked>
+                                    <label for="useAccountAddress">Use my account address</label>
+                                </div>
+                                <div class="choice-option">
+                                    <input type="radio" id="useNewAddress" name="addressChoice" value="new">
+                                    <label for="useNewAddress">Enter new address</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" id="newAddressGroup" style="display: none;">
+                                <label for="shippingAddress" class="form-label">New Shipping Address</label>
+                                <textarea class="form-control" 
+                                          id="shippingAddress" 
+                                          name="shippingAddress" 
+                                          minlength="10" 
+                                          maxlength="200"
+                                          placeholder="Enter your complete shipping address..."></textarea>
+                                <div class="error-message" id="addressError">
+                                    Please enter a valid shipping address (10-200 characters).
+                                </div>
+                            </div>
+                            
+                            <div class="account-info" id="accountAddressInfo">
+                                <div class="info-display">
+                                    <strong>Account Address:</strong>
+                                    <span id="userAddress"><%= user && user.address ? user.address : 'No address saved' %></span>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="contactPhone" class="form-label">Contact Phone</label>
-                            <input type="tel" 
-                                   class="form-control" 
-                                   id="contactPhone" 
-                                   name="contactPhone" 
-                                   required
-                                   placeholder="Enter 11-digit phone number"
-                                   maxlength="11">
-                            <div class="error-message" id="phoneError">
-                                Phone number must be exactly 11 digits.
+                        <!-- Phone Section -->
+                        <div class="form-section">
+                            <h4>Contact Phone</h4>
+                            <div class="choice-group">
+                                <div class="choice-option">
+                                    <input type="radio" id="useAccountPhone" name="phoneChoice" value="account" checked>
+                                    <label for="useAccountPhone">Use my account phone</label>
+                                </div>
+                                <div class="choice-option">
+                                    <input type="radio" id="useNewPhone" name="phoneChoice" value="new">
+                                    <label for="useNewPhone">Enter new phone number</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" id="newPhoneGroup" style="display: none;">
+                                <label for="contactPhone" class="form-label">New Contact Phone</label>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="contactPhone" 
+                                       name="contactPhone" 
+                                       placeholder="Enter 10-digit phone number"
+                                       maxlength="10">
+                                <div class="error-message" id="phoneError">
+                                    Phone number must be exactly 10 digits.
+                                </div>
+                            </div>
+                            
+                            <div class="account-info" id="accountPhoneInfo">
+                                <div class="info-display">
+                                    <strong>Account Phone:</strong>
+                                    <span id="userPhone"><%= user && user.phoneNumber ? user.phoneNumber : 'No phone saved' %></span>
+                                </div>
                             </div>
                         </div>
                         
@@ -227,6 +270,78 @@
     gap: 1.5rem;
 }
 
+.form-section {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    background: var(--card-bg);
+}
+
+.form-section h4 {
+    color: var(--primary);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.choice-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.choice-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.choice-option:hover {
+    background: var(--hover-bg);
+}
+
+.choice-option input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.choice-option label {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.account-info {
+    background: var(--accent);
+    border: 1px solid var(--sage);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.info-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.info-display strong {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.info-display span {
+    color: var(--text-primary);
+    font-size: 1rem;
+    word-break: break-word;
+}
+
 .form-group {
     display: flex;
     flex-direction: column;
@@ -254,6 +369,7 @@
     box-shadow: 0 0 0 2px rgba(74, 124, 122, 0.1);
     background: var(--card-bg);
     outline: none;
+    color: var(--text-primary);
 }
 
 .form-control.error {
@@ -265,6 +381,13 @@ textarea.form-control {
     resize: vertical;
     min-height: 100px;
     font-family: inherit;
+    color: var(--text-primary);
+    background: var(--background);
+}
+
+textarea.form-control:focus {
+    color: var(--text-primary);
+    background: var(--card-bg);
 }
 
 .error-message {
@@ -340,11 +463,11 @@ textarea.form-control {
     }
     
     .order-summary {
-        order: 2;
+        order: 1;
     }
     
     .delivery-info {
-        order: 1;
+        order: 2;
     }
 }
 
@@ -427,76 +550,166 @@ textarea.form-control {
 </style>
 
 <script>
-document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkoutForm');
+    if (!form) return;
+
+    // Radio button elements
+    const addressChoiceRadios = document.querySelectorAll('input[name="addressChoice"]');
+    const phoneChoiceRadios = document.querySelectorAll('input[name="phoneChoice"]');
     
-    // Clear previous errors
-    document.querySelectorAll('.error-message').forEach(error => {
-        error.classList.remove('show');
-    });
-    document.querySelectorAll('.form-control').forEach(input => {
-        input.classList.remove('error');
-    });
+    // Form groups
+    const newAddressGroup = document.getElementById('newAddressGroup');
+    const newPhoneGroup = document.getElementById('newPhoneGroup');
+    const accountAddressInfo = document.getElementById('accountAddressInfo');
+    const accountPhoneInfo = document.getElementById('accountPhoneInfo');
     
-    let isValid = true;
-    
-    // Validate shipping address
-    const shippingAddress = document.getElementById('shippingAddress');
-    if (!shippingAddress.value.trim() || shippingAddress.value.trim().length < 10 || shippingAddress.value.trim().length > 200) {
-        document.getElementById('addressError').classList.add('show');
-        shippingAddress.classList.add('error');
-        isValid = false;
-    }
-    
-    // Validate phone number
-    const contactPhone = document.getElementById('contactPhone');
-    const phonePattern = /^[0-9]{11}$/;
-    if (!phonePattern.test(contactPhone.value.replace(/\D/g, ''))) {
-        document.getElementById('phoneError').classList.add('show');
-        contactPhone.classList.add('error');
-        isValid = false;
-    }
-    
-    if (!isValid) {
-        // Scroll to first error
-        const firstError = document.querySelector('.form-control.error');
-        if (firstError) {
-            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            firstError.focus();
-        }
-        return;
-    }
-    
-    // Show loading state
+    // Input elements
+    const addressInput = document.getElementById('shippingAddress');
+    const phoneInput = document.getElementById('contactPhone');
     const submitBtn = document.getElementById('submitBtn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
     
-    // Submit form
-    this.submit();
+    // Error elements
+    const addressError = document.getElementById('addressError');
+    const phoneError = document.getElementById('phoneError');
+    
+    // Handle address choice
+    addressChoiceRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'new') {
+                newAddressGroup.style.display = 'block';
+                accountAddressInfo.style.display = 'none';
+                addressInput.setAttribute('required', 'required');
+            } else {
+                newAddressGroup.style.display = 'none';
+                accountAddressInfo.style.display = 'block';
+                addressInput.removeAttribute('required');
+                addressInput.classList.remove('error');
+                addressError.classList.remove('show');
+            }
+        });
+    });
+    
+    // Handle phone choice
+    phoneChoiceRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'new') {
+                newPhoneGroup.style.display = 'block';
+                accountPhoneInfo.style.display = 'none';
+                phoneInput.setAttribute('required', 'required');
+            } else {
+                newPhoneGroup.style.display = 'none';
+                accountPhoneInfo.style.display = 'block';
+                phoneInput.removeAttribute('required');
+                phoneInput.classList.remove('error');
+                phoneError.classList.remove('show');
+            }
+        });
+    });
+    
+    function validateAddress() {
+        const addressChoice = document.querySelector('input[name="addressChoice"]:checked').value;
+        
+        if (addressChoice === 'new') {
+            const value = addressInput.value.trim();
+            if (value.length >= 10 && value.length <= 200) {
+                addressInput.classList.remove('error');
+                addressError.classList.remove('show');
+                return true;
+            } else {
+                addressInput.classList.add('error');
+                addressError.classList.add('show');
+                return false;
+            }
+        } else {
+            // Using account address - check if user has address
+            const userAddress = document.getElementById('userAddress').textContent;
+            if (userAddress === 'No address saved') {
+                UIManager.showMessage('Please add an address to your account or enter a new address', 'warning');
+                return false;
+            }
+            return true;
+        }
+    }
+    
+    function validatePhone() {
+        const phoneChoice = document.querySelector('input[name="phoneChoice"]:checked').value;
+        
+        if (phoneChoice === 'new') {
+            const phonePattern = /^[0-9]{10}$/;
+            if (phonePattern.test(phoneInput.value.replace(/\D/g, ''))) {
+                phoneInput.classList.remove('error');
+                phoneError.classList.remove('show');
+                return true;
+            } else {
+                phoneInput.classList.add('error');
+                phoneError.classList.add('show');
+                return false;
+            }
+        } else {
+            // Using account phone - check if user has phone
+            const userPhone = document.getElementById('userPhone').textContent;
+            if (userPhone === 'No phone saved') {
+                UIManager.showMessage('Please add a phone number to your account or enter a new phone number', 'warning');
+                return false;
+            }
+            return true;
+        }
+    }
+    
+    form.addEventListener('submit', function(e) {
+        const isAddressValid = validateAddress();
+        const isPhoneValid = validatePhone();
+        
+        if (!isAddressValid || !isPhoneValid) {
+            e.preventDefault(); // Stop form submission
+            
+            const firstError = document.querySelector('.form-control.error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        } else {
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
+        }
+    });
+
+    // Real-time validation
+    addressInput.addEventListener('input', validateAddress);
+    phoneInput.addEventListener('input', validatePhone);
 });
 
-// Phone number input formatting
-document.getElementById('contactPhone').addEventListener('input', function(e) {
-    // Remove all non-digits and limit to 11 characters
-    this.value = this.value.replace(/\D/g, '').slice(0, 11);
-    
-    // Clear error state when user starts typing
-    if (this.classList.contains('error')) {
-        this.classList.remove('error');
-        document.getElementById('phoneError').classList.remove('show');
+// Format phone number input to allow only 10 digits
+document.getElementById('contactPhone').addEventListener('input', function (e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 10) {
+        value = value.slice(0, 10);
     }
+    e.target.value = value;
 });
 
-// Address input validation
-document.getElementById('shippingAddress').addEventListener('input', function(e) {
-    // Clear error state when user starts typing
-    if (this.classList.contains('error')) {
-        this.classList.remove('error');
-        document.getElementById('addressError').classList.remove('show');
-    }
-});
+// Simple message display function (if UIManager is not available)
+function showMessage(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    document.body.insertBefore(alertDiv, document.body.firstChild);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Make showMessage globally available
+window.showMessage = showMessage;
 </script>
 
 <%- include('../../partials/footer') %>

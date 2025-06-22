@@ -66,6 +66,15 @@
     --accent: var(--teal);
 }
 
+/* Override for the navbar toggler icon in dark mode */
+[data-theme="dark"] .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.75)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
 /* ===============================================
    RESET & BASE STYLES
    =============================================== */
@@ -964,4 +973,49 @@ h2 {
     box-shadow: 0 0 0 2px rgba(74, 124, 122, 0.1);
     background: var(--card-bg);
     outline: none;
+}
+
+/* ===============================================
+   MOBILE NAVBAR OVERRIDES
+   =============================================== */
+@media (max-width: 991.98px) { /* Corresponds to Bootstrap's 'lg' breakpoint */
+  
+  /* Style the container for the expanded menu */
+  .navbar-collapse {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+  }
+  
+  /* Center-align the navigation links */
+  .navbar-nav {
+    text-align: center;
+  }
+  
+  /* Adjust search bar for better fit within the collapsed menu */
+  .navbar .d-flex[role="search"] {
+    margin: 1rem auto; /* Center the search bar */
+    max-width: 320px;
+  }
+  
+  /* Arrange the icons horizontally */
+  .navbar-nav.d-flex.align-items-center {
+    flex-direction: row !important; /* Override Bootstrap's stacking */
+    justify-content: center;
+    gap: 1.5rem; /* Space out the icons */
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* Ensure dropdown menus (like categories and user) look good */
+  .navbar-nav .dropdown-menu {
+    text-align: center;
+    background-color: var(--background);
+    border-color: var(--border-color);
+    box-shadow: none;
+  }
 }

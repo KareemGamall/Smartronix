@@ -22,7 +22,7 @@ class CartHelper {
     static async findUserCart(req) {
         return await Cart.findOne({
             $or: [
-                { user: req.session.userId },
+                { user: req.user?._id },
                 { sessionId: req.session.id }
             ]
         });
@@ -31,7 +31,7 @@ class CartHelper {
     static async findUserCartWithProducts(req) {
         return await Cart.findOne({
             $or: [
-                { user: req.session.userId },
+                { user: req.user?._id },
                 { sessionId: req.session.id }
             ]
         }).populate('items.product');
@@ -39,7 +39,7 @@ class CartHelper {
 
     static createNewCart(req) {
         return new Cart({
-            user: req.session.userId || null,
+            user: req.user?._id || null,
             sessionId: req.session.id,
             items: [],
             totalAmount: 0,
@@ -279,16 +279,25 @@ const cartController = {
 
     async checkout(req, res) {
         try {
-            // Check if user is authenticated using res.locals.user (set by JWT middleware)
-            if (!res.locals.user) {
+            console.log('=== CART CHECKOUT DEBUG ===');
+            console.log('User authenticated:', !!req.user);
+            console.log('User ID:', req.user?._id);
+            console.log('Session ID:', req.session.id);
+            console.log('JWT Token present:', !!req.cookies.token);
+            
+            // Check if user is authenticated using req.user (set by JWT middleware)
+            if (!req.user) {
                 // The middleware will handle the redirect with the original URL
                 console.log('User not authenticated, middleware will handle redirect');
                 return res.redirect('/login');
             }
 
             let cart = await CartHelper.findUserCartWithProducts(req);
+            console.log('Cart found:', !!cart);
+            console.log('Cart items count:', cart?.items?.length || 0);
             
             if (!cart || cart.items.length === 0) {
+                console.log('No cart or empty cart, redirecting to cart view');
                 return res.redirect('/cart/view');
             }
 
@@ -298,8 +307,10 @@ const cartController = {
                 grandTotal: formatPrice((cart.totalAmount || 0) + DELIVERY_FEE)
             };
 
+            console.log('Rendering checkout page with cart data');
             res.render('pages/Order/checkout', { 
                 cart: cartWithDelivery,
+                user: req.user,
                 title: 'Checkout'
             });
 

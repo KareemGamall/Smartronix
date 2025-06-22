@@ -323,12 +323,30 @@ class EventHandlers {
             button.addEventListener('click', async function(e) {
                 e.preventDefault();
                 const productId = this.dataset.productId;
-                const quantity = 1;
+                
+                // FIXED: Get the actual quantity from the input field
+                const quantityInput = document.querySelector('#quantity');
+                const quantity = quantityInput ? 
+                    Utils.parseInteger(quantityInput.value, 1) : 1;
+                
+                console.log('Adding to cart:', { productId, quantity }); // Debug log
                 
                 // Scroll to nav bar
                 const navBar = document.querySelector('nav');
                 if (navBar) {
                     navBar.scrollIntoView({ behavior: 'smooth' });
+                }
+                
+                // Open mobile menu if on mobile device
+                const isMobile = window.innerWidth <= 992;
+                if (isMobile) {
+                    const navbarToggler = document.querySelector('.navbar-toggler');
+                    const navbarContent = document.getElementById('navbarContent');
+                    
+                    if (navbarToggler && navbarContent && !navbarContent.classList.contains('show')) {
+                        // Trigger the mobile menu to open
+                        navbarToggler.click();
+                    }
                 }
                 
                 await CartManager.addToCart(productId, quantity);
@@ -396,6 +414,8 @@ class BootstrapManager {
 class ThemeManager {
     static init() {
         const themeToggle = document.getElementById('themeToggle');
+        if (!themeToggle) return; // Exit if themeToggle doesn't exist
+        
         const themeIcon = themeToggle.querySelector('i');
         
         // Check for saved theme preference
@@ -417,7 +437,9 @@ class ThemeManager {
     }
 
     static updateThemeIcon(icon, theme) {
-        icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        if (icon) {
+            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
     }
 }
 

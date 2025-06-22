@@ -84,7 +84,7 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      process.env.JWT_SECRET_PHRASE,
+      process.env.JWT_SECRET_PHRASE || 'smartronix-jwt-secret-key-2024',
       {
         expiresIn: "30d",
       }
@@ -130,6 +130,18 @@ exports.updateProfile = async (req, res) => {
     const { name, phoneNumber, address } = req.body;
     const userId = req.user._id;
 
+    console.log('Update Profile Request:', {
+      userId: userId,
+      name: name,
+      phoneNumber: phoneNumber,
+      address: address,
+      userBeforeUpdate: {
+        name: req.user.name,
+        phoneNumber: req.user.phoneNumber,
+        address: req.user.address
+      }
+    });
+
     // Validate required fields
     if (!name || !name.trim()) {
       return res.status(400).json({
@@ -139,10 +151,10 @@ exports.updateProfile = async (req, res) => {
 
     // Check if phone number is provided and validate it
     if (phoneNumber && phoneNumber.trim()) {
-      const phoneRegex = /^(10|11|12|15)\d{8}$/;
+      const phoneRegex = /^\d{10}$/;
       if (!phoneRegex.test(phoneNumber.trim())) {
         return res.status(400).json({
-          error: "Please enter a valid Egyptian phone number starting with 10, 11, 12, or 15",
+          error: "Please enter a valid 10-digit phone number.",
         });
       }
 
@@ -159,16 +171,28 @@ exports.updateProfile = async (req, res) => {
       }
     }
 
+    // Prepare update data
+    const updateData = {
+      name: name.trim(),
+      phoneNumber: phoneNumber ? phoneNumber.trim() : req.user.phoneNumber,
+      address: address ? address.trim() : req.user.address
+    };
+
+    console.log('Update Data:', updateData);
+
     // Update user profile
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      {
-        name: name.trim(),
-        phoneNumber: phoneNumber ? phoneNumber.trim() : req.user.phoneNumber,
-        address: address ? address.trim() : req.user.address
-      },
+      updateData,
       { new: true, runValidators: true }
     ).select('-password');
+
+    console.log('Updated User:', {
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      phoneNumber: updatedUser.phoneNumber,
+      address: updatedUser.address
+    });
 
     if (!updatedUser) {
       return res.status(404).json({
@@ -181,7 +205,7 @@ exports.updateProfile = async (req, res) => {
       user: updatedUser
     });
   } catch (error) {
-    console.log(error);
+    console.error('Error in updateProfile:', error);
     res.status(500).json({
       error: "Error updating profile",
     });

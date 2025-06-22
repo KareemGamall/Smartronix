@@ -85,6 +85,7 @@ app.use(async (req, res, next) => {
       if (!token) {
         console.log('JWT Middleware - No token, setting user to null');
         res.locals.user = null;
+        req.user = null;
         return next();
       }
   
@@ -94,10 +95,12 @@ app.use(async (req, res, next) => {
       console.log('JWT Middleware - User found:', user ? user.email : 'Not found');
   
       res.locals.user = user || null;
+      req.user = user || null;
       next();
     } catch (error) {
       console.error("JWT middleware error:", error);
       res.locals.user = null;
+      req.user = null;
       return next();
     }
 });

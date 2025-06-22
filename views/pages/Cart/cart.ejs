@@ -44,11 +44,36 @@
             <p>Subtotal <span class="subtotal">$<%= cart.totalAmount.toFixed(2) %></span></p>
             <p>Delivery Fee <span>(Standard) $50.00</span></p>
             <p>Grand Total <span class="grandtotal">$<%= (cart.totalAmount + 50).toFixed(2) %></span></p>
-            <form action="/order/checkout" method="get">
-                <button type="submit" class="checkout-btn">Proceed to Checkout</button>
+            <form action="/order/checkout" method="get" id="checkoutForm">
+                <button type="submit" class="checkout-btn" id="checkoutBtn">Proceed to Checkout</button>
             </form>
+            <!-- Test button -->
         </div>
     <% } %>
 </div>
+
+<script>
+// Debug checkout form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const checkoutForm = document.getElementById('checkoutForm');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    
+    if (checkoutForm) {
+        console.log('Checkout form found');
+        
+        checkoutForm.addEventListener('submit', function(e) {
+            console.log('Checkout form submitted');
+            console.log('Form action:', this.action);
+            console.log('Form method:', this.method);
+        });
+        
+        checkoutBtn.addEventListener('click', function(e) {
+            console.log('Checkout button clicked');
+        });
+    } else {
+        console.log('Checkout form not found');
+    }
+});
+</script>
 
 <%- include('../../partials/footer') %>

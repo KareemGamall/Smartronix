@@ -1,12 +1,20 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
+// Get JWT secret from environment or use default
+const JWT_SECRET = process.env.JWT_SECRET_PHRASE || 'smartronix-jwt-secret-key-2024';
+
 // Middleware to check if user is authenticated
 const isAuthenticated = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
-
-    if (!token) {
+    console.log('=== AUTH MIDDLEWARE DEBUG ===');
+    console.log('Request URL:', req.originalUrl);
+    console.log('Request method:', req.method);
+    console.log('User authenticated:', !!req.user);
+    console.log('User ID:', req.user?._id);
+    
+    if (!req.user) {
+      console.log('No user found, redirecting to login');
       if (req.xhr || req.headers.accept?.includes('application/json')) {
         return res.status(401).json({ 
           success: false, 
@@ -16,24 +24,11 @@ const isAuthenticated = async (req, res, next) => {
       return res.redirect(`/login?message=Please+log+in+to+continue&redirect=${encodeURIComponent(req.originalUrl)}`);
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_PHRASE);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      if (req.xhr || req.headers.accept?.includes('application/json')) {
-        return res.status(401).json({ 
-          success: false, 
-          message: 'User not found' 
-        });
-      }
-      return res.redirect("/login");
-    }
-
-    req.user = user;
-    res.locals.user = user;
+    console.log('Authentication successful, proceeding to next middleware');
     next();
   } catch (error) {
     console.error("Auth Error:", error);
+    console.log('Clearing token due to error');
     res.clearCookie("token");
     if (req.xhr || req.headers.accept?.includes('application/json')) {
       return res.status(401).json({ 
@@ -48,9 +43,7 @@ const isAuthenticated = async (req, res, next) => {
 // Middleware to check if user is admin
 const isAdmin = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
-
-    if (!token) {
+    if (!req.user) {
       if (req.xhr || req.headers.accept?.includes('application/json')) {
         return res.status(401).json({ 
           success: false, 
@@ -60,10 +53,7 @@ const isAdmin = async (req, res, next) => {
       return res.redirect("/login");
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_PHRASE);
-    const user = await User.findById(decoded.id);
-
-    if (!user || user.role !== "admin") {
+    if (req.user.role !== "admin") {
       if (req.xhr || req.headers.accept?.includes('application/json')) {
         return res.status(403).json({ 
           success: false, 
@@ -77,8 +67,6 @@ const isAdmin = async (req, res, next) => {
       });
     }
 
-    req.user = user;
-    res.locals.user = user;
     next();
   } catch (error) {
     console.error("Admin Auth Error:", error);
@@ -97,9 +85,7 @@ const isAdmin = async (req, res, next) => {
 const authorize = (allowedRoles = []) => {
   return async function (req, res, next) {
     try {
-      const token = req.cookies.token;
-
-      if (!token) {
+      if (!req.user) {
         if (req.xhr || req.headers.accept?.includes('application/json')) {
           return res.status(401).json({ 
             success: false, 
@@ -109,20 +95,7 @@ const authorize = (allowedRoles = []) => {
         return res.redirect(`/login?message=Please+log+in+to+continue&redirect=${encodeURIComponent(req.originalUrl)}`);
       }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_PHRASE);
-      const user = await User.findById(decoded.id);
-
-      if (!user) {
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-          return res.status(401).json({ 
-            success: false, 
-            message: 'User not found' 
-          });
-        }
-        return res.redirect("/login");
-      }
-
-      if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+      if (allowedRoles.length > 0 && !allowedRoles.includes(req.user.role)) {
         if (req.xhr || req.headers.accept?.includes('application/json')) {
           return res.status(403).json({ 
             success: false, 
@@ -135,8 +108,6 @@ const authorize = (allowedRoles = []) => {
         });
       }
 
-      req.user = user;
-      res.locals.user = user;
       next();
     } catch (error) {
       console.error("Auth middleware error:", error);
