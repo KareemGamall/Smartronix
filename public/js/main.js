@@ -3,6 +3,7 @@ const CONSTANTS = {
     DELIVERY_FEE: 50,
     AUTO_DISMISS_TIME: 5000,
     MIN_QUANTITY: 1,
+    DEBOUNCE_DELAY: 300,
     SELECTORS: {
         CART_COUNTER: '.CartCounter',
         ADD_TO_CART_BTN: '.add-to-cart-btn',
@@ -12,6 +13,160 @@ const CONSTANTS = {
         TAB_CONTENTS: '.tab-content'
     }
 };
+
+// XSS Protection Utility
+class XSSProtection {
+    static escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    static sanitizeHtml(html) {
+        // Basic HTML sanitization - only allow safe tags
+        const allowedTags = ['b', 'i', 'em', 'strong', 'span', 'div', 'p'];
+        const allowedAttributes = ['class', 'id', 'style'];
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Remove script tags and event handlers
+        const scripts = tempDiv.querySelectorAll('script');
+        scripts.forEach(script => script.remove());
+        
+        // Remove all elements except allowed ones
+        const allElements = tempDiv.querySelectorAll('*');
+        allElements.forEach(element => {
+            if (!allowedTags.includes(element.tagName.toLowerCase())) {
+                element.outerHTML = element.textContent;
+            } else {
+                // Remove disallowed attributes
+                const attributes = Array.from(element.attributes);
+                attributes.forEach(attr => {
+                    if (!allowedAttributes.includes(attr.name) || 
+                        attr.name.startsWith('on') || 
+                        attr.value.includes('javascript:')) {
+                        element.removeAttribute(attr.name);
+                    }
+                });
+            }
+        });
+        
+        return tempDiv.innerHTML;
+    }
+}
+
+// Centralized State Management
+class AppState {
+    constructor() {
+        this.state = {
+            cart: {
+                items: [],
+                totalAmount: 0,
+                itemCount: 0
+            },
+            user: {
+                isLoggedIn: false,
+                userId: null
+            },
+            ui: {
+                isLoading: false,
+                theme: 'light'
+            }
+        };
+        this.listeners = new Map();
+        this.pendingOperations = new Map();
+    }
+
+    // Subscribe to state changes
+    subscribe(key, callback) {
+        if (!this.listeners.has(key)) {
+            this.listeners.set(key, new Set());
+        }
+        this.listeners.get(key).add(callback);
+        
+        // Return unsubscribe function
+        return () => {
+            const callbacks = this.listeners.get(key);
+            if (callbacks) {
+                callbacks.delete(callback);
+            }
+        };
+    }
+
+    // Notify listeners of state changes
+    notify(key) {
+        const callbacks = this.listeners.get(key);
+        if (callbacks) {
+            callbacks.forEach(callback => {
+                try {
+                    callback(this.state[key]);
+                } catch (error) {
+                    console.error('State listener error:', error);
+                }
+            });
+        }
+    }
+
+    // Update state safely
+    update(key, newValue) {
+        this.state[key] = { ...this.state[key], ...newValue };
+        this.notify(key);
+    }
+
+    // Get state safely
+    get(key) {
+        return this.state[key];
+    }
+
+    // Check if operation is pending
+    isOperationPending(operationId) {
+        return this.pendingOperations.has(operationId);
+    }
+
+    // Set operation as pending
+    setOperationPending(operationId, promise) {
+        this.pendingOperations.set(operationId, promise);
+        promise.finally(() => {
+            this.pendingOperations.delete(operationId);
+        });
+    }
+}
+
+// Global state instance
+const appState = new AppState();
+
+// Debounce Utility
+class DebounceManager {
+    constructor() {
+        this.timeouts = new Map();
+    }
+
+    debounce(key, func, delay = CONSTANTS.DEBOUNCE_DELAY) {
+        // Clear existing timeout
+        if (this.timeouts.has(key)) {
+            clearTimeout(this.timeouts.get(key));
+        }
+
+        // Set new timeout
+        const timeoutId = setTimeout(() => {
+            func();
+            this.timeouts.delete(key);
+        }, delay);
+
+        this.timeouts.set(key, timeoutId);
+    }
+
+    cancel(key) {
+        if (this.timeouts.has(key)) {
+            clearTimeout(this.timeouts.get(key));
+            this.timeouts.delete(key);
+        }
+    }
+}
+
+// Global debounce manager
+const debounceManager = new DebounceManager();
 
 // API Service for cart operations
 class CartAPI {
@@ -75,16 +230,23 @@ const Utils = {
     validateQuantity(quantity, stockLimit) {
         const qty = this.parseInteger(quantity, CONSTANTS.MIN_QUANTITY);
         return Math.max(CONSTANTS.MIN_QUANTITY, Math.min(qty, stockLimit));
+    },
+
+    generateOperationId(operation, productId) {
+        return `${operation}_${productId}_${Date.now()}`;
     }
 };
 
 // UI Manager for DOM manipulations and user feedback
 class UIManager {
     static showMessage(message, type = 'info') {
+        // Sanitize message to prevent XSS
+        const sanitizedMessage = XSSProtection.escapeHtml(message);
+        
         const alertDiv = document.createElement('div');
         alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
         alertDiv.innerHTML = `
-            ${message}
+            ${sanitizedMessage}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
         
@@ -103,7 +265,7 @@ class UIManager {
         if (isLoading) {
             element.dataset.originalContent = element.innerHTML;
             element.disabled = true;
-            element.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${loadingText}`;
+            element.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${XSSProtection.escapeHtml(loadingText)}`;
         } else {
             element.disabled = false;
             element.innerHTML = element.dataset.originalContent || '';
@@ -131,7 +293,7 @@ class UIManager {
             cartData.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
 
         if (totalQuantity > 0) {
-            counter.textContent = totalQuantity;
+            counter.textContent = totalQuantity.toString();
             counter.style.display = 'block';
         } else {
             counter.textContent = '';
@@ -166,21 +328,36 @@ class UIManager {
     }
 }
 
-// Cart Manager - main cart functionality
+// Cart Manager - main cart functionality with race condition prevention
 class CartManager {
     static async updateCartCounter() {
         const result = await CartAPI.getCart();
         if (result.success) {
-            UIManager.updateCartCounter(result.data);
+            appState.update('cart', result.data);
         } else {
             console.error('Error updating cart counter:', result.error);
         }
     }
 
     static async addToCart(productId, quantity = 1) {
+        const operationId = Utils.generateOperationId('add', productId);
+        
+        // Prevent concurrent operations
+        if (appState.isOperationPending(operationId)) {
+            console.log('Add to cart operation already in progress');
+            return;
+        }
+
         const button = document.querySelector(`[data-product-id="${productId}"]`);
         UIManager.setLoadingState(button, true, 'Adding...');
 
+        const operation = this.performAddToCart(productId, quantity, button);
+        appState.setOperationPending(operationId, operation);
+        
+        return operation;
+    }
+
+    static async performAddToCart(productId, quantity, button) {
         try {
             const result = await CartAPI.addToCart(productId, quantity);
             
@@ -198,9 +375,24 @@ class CartManager {
     }
 
     static async updateQuantity(productId, quantity) {
+        const operationId = Utils.generateOperationId('update', productId);
+        
+        // Prevent concurrent operations
+        if (appState.isOperationPending(operationId)) {
+            console.log('Update quantity operation already in progress');
+            return;
+        }
+
         const input = document.querySelector(`input[data-product-id="${productId}"]`);
         UIManager.setInputLoadingState(input, true);
 
+        const operation = this.performUpdateQuantity(productId, quantity, input);
+        appState.setOperationPending(operationId, operation);
+        
+        return operation;
+    }
+
+    static async performUpdateQuantity(productId, quantity, input) {
         try {
             const result = await CartAPI.updateCart(productId, quantity);
             
@@ -228,6 +420,21 @@ class CartManager {
     }
 
     static async removeFromCart(productId) {
+        const operationId = Utils.generateOperationId('remove', productId);
+        
+        // Prevent concurrent operations
+        if (appState.isOperationPending(operationId)) {
+            console.log('Remove from cart operation already in progress');
+            return;
+        }
+
+        const operation = this.performRemoveFromCart(productId);
+        appState.setOperationPending(operationId, operation);
+        
+        return operation;
+    }
+
+    static async performRemoveFromCart(productId) {
         try {
             const result = await CartAPI.removeFromCart(productId);
             
@@ -358,20 +565,27 @@ class EventHandlers {
         const quantityInputs = document.querySelectorAll(CONSTANTS.SELECTORS.QUANTITY_CONTROLS);
         
         quantityInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                const productId = this.dataset.productId;
-                const stockLimit = Utils.parseInteger(this.dataset.stock, 1);
-                const quantity = Utils.validateQuantity(this.value, stockLimit);
+            const debouncedUpdate = debounceManager.debounce.bind(
+                debounceManager, 
+                `quantity_${input.dataset.productId}`,
+                () => {
+                    const productId = input.dataset.productId;
+                    const stockLimit = Utils.parseInteger(input.dataset.stock, 1);
+                    const quantity = Utils.validateQuantity(input.value, stockLimit);
 
-                if (quantity !== Utils.parseInteger(this.value)) {
-                    if (quantity === stockLimit) {
-                        UIManager.showMessage(`Sorry, only ${stockLimit} items available in stock`, 'warning');
+                    if (quantity !== Utils.parseInteger(input.value)) {
+                        if (quantity === stockLimit) {
+                            UIManager.showMessage(`Sorry, only ${stockLimit} items available in stock`, 'warning');
+                        }
+                        input.value = quantity;
                     }
-                    this.value = quantity;
-                }
 
-                CartManager.updateQuantity(productId, quantity);
-            });
+                    CartManager.updateQuantity(productId, quantity);
+                },
+                CONSTANTS.DEBOUNCE_DELAY
+            );
+
+            input.addEventListener('change', debouncedUpdate);
 
             // Prevent invalid input during typing
             input.addEventListener('input', function() {
@@ -419,19 +633,19 @@ class ThemeManager {
         const themeIcon = themeToggle.querySelector('i');
         
         // Check for saved theme preference
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            this.updateThemeIcon(themeIcon, savedTheme);
-        }
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        appState.update('ui', { theme: savedTheme });
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        this.updateThemeIcon(themeIcon, savedTheme);
 
         // Add click event listener
         themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const currentTheme = appState.get('ui').theme;
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
+            appState.update('ui', { theme: newTheme });
             this.updateThemeIcon(themeIcon, newTheme);
         });
     }
@@ -457,6 +671,11 @@ class ECommerceApp {
         // Initialize product details
         ProductDetailsManager.initializeQuantityControls();
         ProductDetailsManager.initializeTabs();
+
+        // Subscribe to cart state changes
+        appState.subscribe('cart', (cartData) => {
+            UIManager.updateCartCounter(cartData);
+        });
 
         // Update cart counter on page load
         await CartManager.updateCartCounter();
@@ -502,7 +721,9 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const query = searchInput.value.trim();
             if (query) {
-                window.location.href = `/products/search?q=${encodeURIComponent(query)}`;
+                // Sanitize search query
+                const sanitizedQuery = XSSProtection.escapeHtml(query);
+                window.location.href = `/products/search?q=${encodeURIComponent(sanitizedQuery)}`;
             }
         });
     }

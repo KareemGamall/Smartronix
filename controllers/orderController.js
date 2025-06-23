@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Product = require("../models/Products");
+const mongoose = require("mongoose");
 
 const DELIVERY_FEE = 50;
 
@@ -9,6 +10,28 @@ const formatPrice = (price) => Number(price.toFixed(2));
 const validatePhoneNumber = (phone) => {
   const phoneNumber = phone ? phone.replace(/\D/g, "") : '';
   return phoneNumber.length === 10;
+};
+
+// Validation constants
+const VALIDATION = {
+  MIN_ADDRESS_LENGTH: 10,
+  MAX_ADDRESS_LENGTH: 200,
+  PHONE_LENGTH: 10
+};
+
+// Simple logger
+const logger = {
+  debug: (message, data = {}) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[DEBUG] ${message}`, data);
+    }
+  },
+  info: (message, data = {}) => {
+    console.log(`[INFO] ${message}`, data);
+  },
+  error: (message, error = {}) => {
+    console.error(`[ERROR] ${message}`, error);
+  }
 };
 
 const orderController = {
@@ -68,14 +91,14 @@ const orderController = {
   },
 
   async placeOrder(req, res, next) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    
     try {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('=== PLACE ORDER DEBUG ===');
-        console.log('User authenticated:', !!req.user);
-        console.log('User ID:', req.user?._id);
-        console.log('Session ID:', req.session.id);
-        console.log('JWT Token present:', !!req.cookies.token);
-      }
+      logger.debug('Starting order placement', {
+        userId: req.user?._id,
+        sessionId: req.session.id
+      });
       
       const {
         shippingAddress,
@@ -84,43 +107,53 @@ const orderController = {
         phoneChoice
       } = req.body;
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Form data:', { addressChoice, phoneChoice });
-      }
+      logger.debug('Order form data', { addressChoice, phoneChoice });
 
-      // Find cart using improved logic
+      // Use the exact same cart finding logic as checkout method
       let cart = null;
       
       // First try to find cart by user ID (for logged in users)
       if (req.user?._id) {
-        cart = await Cart.findOne({ user: req.user._id }).populate("items.product");
+        cart = await Cart.findOne({ user: req.user._id }).populate("items.product").session(session);
         if (cart) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Found user cart with ID:', cart._id);
-          }
+          logger.debug('Found user cart', { cartId: cart._id });
+        } else {
+          logger.debug('No user cart found', { userId: req.user._id });
         }
       }
       
-      // If no user cart found, try session cart
-      if (!cart) {
+      // Then try to find cart by session cartId (most reliable)
+      if (!cart && req.session.cartId) {
+        cart = await Cart.findById(req.session.cartId).populate("items.product").session(session);
+        if (cart) {
+          logger.debug('Found cart by session cartId', { cartId: cart._id });
+        } else {
+          logger.debug('No cart found by session cartId', { cartId: req.session.cartId });
+        }
+      }
+      
+      // Finally try to find cart by session ID (fallback)
+      if (!cart && req.session.id) {
         cart = await Cart.findOne({ 
-          sessionId: req.session.id,
-          user: null 
-        }).populate("items.product");
+          sessionId: req.session.id
+        }).populate("items.product").session(session);
         
         if (cart) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Found session cart with ID:', cart._id);
-          }
+          logger.debug('Found session cart', { cartId: cart._id });
+        } else {
+          logger.debug('No session cart found', { sessionId: req.session.id });
         }
       }
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Cart found:', !!cart);
-        console.log('Cart items count:', cart?.items?.length || 0);
-      }
+      logger.debug('Cart lookup result', {
+        found: !!cart,
+        itemsCount: cart?.items?.length || 0
+      });
 
       if (!cart || cart.items.length === 0) {
+        logger.debug('No cart or empty cart, redirecting to cart view');
+        await session.abortTransaction();
+        session.endSession();
         return res.redirect('/cart/view');
       }
 
@@ -128,9 +161,7 @@ const orderController = {
       const user = req.user;
 
       const renderCheckoutWithError = (error) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Rendering checkout with error:', error);
-        }
+        logger.debug('Rendering checkout with error', { error });
         const cartWithDelivery = {
           ...cart.toObject(),
           deliveryFee: DELIVERY_FEE,
@@ -144,23 +175,34 @@ const orderController = {
         });
       };
 
+      // Validate address
       if (addressChoice === 'account') {
         if (!user || !user.address) {
+          await session.abortTransaction();
+          session.endSession();
           return renderCheckoutWithError("No address found in your account. Please add an address or enter a new one.");
         }
       } else {
-        if (!shippingAddress || shippingAddress.trim().length < 10) {
-          return renderCheckoutWithError("Please enter a valid shipping address (at least 10 characters).");
+        if (!shippingAddress || shippingAddress.trim().length < VALIDATION.MIN_ADDRESS_LENGTH || 
+            shippingAddress.trim().length > VALIDATION.MAX_ADDRESS_LENGTH) {
+          await session.abortTransaction();
+          session.endSession();
+          return renderCheckoutWithError(`Please enter a valid shipping address (${VALIDATION.MIN_ADDRESS_LENGTH}-${VALIDATION.MAX_ADDRESS_LENGTH} characters).`);
         }
       }
 
+      // Validate phone
       if (phoneChoice === 'account') {
         if (!user || !user.phoneNumber) {
+          await session.abortTransaction();
+          session.endSession();
           return renderCheckoutWithError("No phone number found in your account. Please add a phone number or enter a new one.");
         }
       } else {
         if (!validatePhoneNumber(contactPhone)) {
-          return renderCheckoutWithError("Phone number must be exactly 10 digits.");
+          await session.abortTransaction();
+          session.endSession();
+          return renderCheckoutWithError(`Phone number must be exactly ${VALIDATION.PHONE_LENGTH} digits.`);
         }
       }
 
@@ -171,13 +213,13 @@ const orderController = {
       if (!validatePhoneNumber(finalPhone)) {
           const errorMessage = phoneChoice === 'account' 
               ? `The phone number in your account (${finalPhone}) is invalid. Please update it in your profile or enter a new one.`
-              : "The new phone number you entered is invalid. Please provide a 10-digit number.";
+              : `The new phone number you entered is invalid. Please provide a ${VALIDATION.PHONE_LENGTH}-digit number.`;
+          await session.abortTransaction();
+          session.endSession();
           return renderCheckoutWithError(errorMessage);
       }
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Creating order with user ID:', req.user._id);
-      }
+      logger.debug('Creating order', { userId: req.user._id });
 
       const order = new Order({
         user: req.user._id,
@@ -193,99 +235,88 @@ const orderController = {
         PaymentMethod: "Cash on Delivery",
       });
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Saving order...');
-      }
-      await order.save();
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Order saved successfully, ID:', order._id);
-        console.log('Updating product stock...');
-      }
-
+      logger.debug('Saving order');
+      await order.save({ session });
+      logger.debug('Order saved successfully', { orderId: order._id });
+      
+      logger.debug('Updating product stock');
       for (const item of cart.items) {
-        await Product.findByIdAndUpdate(item.product._id, {
-          $inc: {
-            stockQuantity: -item.quantity
-          },
-        });
+        await Product.findByIdAndUpdate(
+          item.product._id, 
+          { $inc: { stockQuantity: -item.quantity } },
+          { session }
+        );
       }
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Deleting cart...');
-      }
-      await Cart.findByIdAndDelete(cart._id);
+      logger.debug('Deleting cart');
+      await Cart.findByIdAndDelete(cart._id, { session });
       
       // Store order ID in session
       req.session.lastOrderId = order._id.toString();
+      logger.debug('Stored order ID in session', { orderId: req.session.lastOrderId });
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Stored order ID in session:', req.session.lastOrderId);
-      }
+      // Commit transaction
+      await session.commitTransaction();
+      logger.debug('Transaction committed successfully');
 
       // Force session save and then redirect
       req.session.save((err) => {
         if (err) {
-            console.error("Session save error:", err);
+            logger.error("Session save error", err);
             return next(err);
         }
 
-        if (process.env.NODE_ENV === 'development') {
-            console.log('Session saved successfully, redirecting to order success...');
-        }
-        
-        // Use absolute path to ensure proper redirect
+        logger.debug('Session saved successfully, redirecting to order success');
         res.redirect("/order/success");
       });
       
     } catch (error) {
-      console.error("Error placing order:", error);
+      logger.error("Error placing order", error);
+      
+      // Abort transaction on error
+      await session.abortTransaction();
+      
       res.status(500).render("pages/error", {
         error: "Error placing order. Please try again.",
       });
+    } finally {
+      session.endSession();
     }
   },
 
   async orderSuccess(req, res) {
     try {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('=== ORDER SUCCESS DEBUG ===');
-        console.log('User authenticated:', !!req.user);
-        console.log('User ID:', req.user?._id);
-        console.log('Session ID:', req.session.id);
-        console.log('JWT Token present:', !!req.cookies.token);
-        console.log('Session lastOrderId:', req.session.lastOrderId);
-        console.log('Session data:', JSON.stringify(req.session, null, 2));
-      }
+      console.log('=== ORDER SUCCESS DEBUG ===');
+      console.log('User authenticated:', !!req.user);
+      console.log('User ID:', req.user?._id);
+      console.log('Session ID:', req.session.id);
+      console.log('JWT Token present:', !!req.cookies.token);
+      console.log('Session lastOrderId:', req.session.lastOrderId);
+      console.log('Session data:', JSON.stringify(req.session, null, 2));
       
       const orderId = req.session.lastOrderId;
       if (!orderId) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("No order ID found in session");
-        }
+        console.log("No order ID found in session");
         return res.redirect("/");
       }
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log("Fetching order details for ID:", orderId);
-      }
+      console.log("Fetching order details for ID:", orderId);
       const order = await Order.findById(orderId).populate("products.product");
 
       if (!order) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("Order not found in database");
-        }
+        console.log("Order not found in database");
         return res.redirect("/");
       }
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log("Order found, rendering success page");
-        console.log("Order details:", {
-          id: order._id,
-          user: order.user,
-          totalAmount: order.totalAmount,
-          productsCount: order.products.length
-        });
-      }
+      console.log("Order found, rendering success page");
+      console.log("Order details:", {
+        id: order._id,
+        user: order.user,
+        totalAmount: order.totalAmount,
+        productsCount: order.products.length,
+        OrderDate: order.OrderDate,
+        OrderID: order.OrderID
+      });
       
       // Clear the order ID from session after successful display
       delete req.session.lastOrderId;

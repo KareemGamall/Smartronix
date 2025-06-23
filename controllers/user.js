@@ -5,39 +5,107 @@ const Cart = require("../models/Cart");
 
 const formatPrice = (price) => Number(price.toFixed(2));
 
-async function mergeCarts(userId, sessionId) {
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Starting cart merge for user: ${userId} and session: ${sessionId}`);
+// Validation constants
+const VALIDATION = {
+  MIN_PASSWORD_LENGTH: 8,
+  MAX_PASSWORD_LENGTH: 128,
+  MIN_NAME_LENGTH: 2,
+  MAX_NAME_LENGTH: 50,
+  PHONE_LENGTH: 10
+};
+
+// Password strength requirements
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+
+// Email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Phone validation regex
+const PHONE_REGEX = /^\d{10}$/;
+
+// Simple logger
+const logger = {
+  debug: (message, data = {}) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[DEBUG] ${message}`, data);
+    }
+  },
+  info: (message, data = {}) => {
+    console.log(`[INFO] ${message}`, data);
+  },
+  error: (message, error = {}) => {
+    console.error(`[ERROR] ${message}`, error);
   }
+};
+
+// Validation functions
+const validatePassword = (password) => {
+  if (password.length < VALIDATION.MIN_PASSWORD_LENGTH) {
+    throw new Error(`Password must be at least ${VALIDATION.MIN_PASSWORD_LENGTH} characters long`);
+  }
+  if (password.length > VALIDATION.MAX_PASSWORD_LENGTH) {
+    throw new Error(`Password must be no more than ${VALIDATION.MAX_PASSWORD_LENGTH} characters long`);
+  }
+  if (!PASSWORD_REGEX.test(password)) {
+    throw new Error('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+  }
+  return password;
+};
+
+const validateEmail = (email) => {
+  if (!EMAIL_REGEX.test(email)) {
+    throw new Error('Please enter a valid email address');
+  }
+  return email.toLowerCase().trim();
+};
+
+const validatePhone = (phone) => {
+  if (!PHONE_REGEX.test(phone)) {
+    throw new Error(`Phone number must be exactly ${VALIDATION.PHONE_LENGTH} digits`);
+  }
+  return phone;
+};
+
+const validateName = (name) => {
+  const trimmedName = name.trim();
+  if (trimmedName.length < VALIDATION.MIN_NAME_LENGTH) {
+    throw new Error(`Name must be at least ${VALIDATION.MIN_NAME_LENGTH} characters long`);
+  }
+  if (trimmedName.length > VALIDATION.MAX_NAME_LENGTH) {
+    throw new Error(`Name must be no more than ${VALIDATION.MAX_NAME_LENGTH} characters long`);
+  }
+  return trimmedName;
+};
+
+async function mergeCarts(userId, sessionId) {
+  logger.debug('Starting cart merge', { userId, sessionId });
 
   try {
     const userCart = await Cart.findOne({ user: userId });
     const sessionCart = await Cart.findOne({ sessionId: sessionId, user: null });
 
     if (!sessionCart) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("No session cart to merge.");
-      }
-      return;
+      logger.debug('No session cart to merge');
+      return { success: true, message: 'No session cart found' };
     }
 
     if (!userCart) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("No existing user cart. Assigning session cart to user.");
-      }
+      logger.debug('No existing user cart, assigning session cart to user');
       sessionCart.user = userId;
       sessionCart.sessionId = null; // Clear session ID since it's now a user cart
       await sessionCart.save();
-      return;
+      return { success: true, message: 'Session cart assigned to user' };
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Both user and session carts exist. Merging items.");
-      console.log("User cart items:", userCart.items.length);
-      console.log("Session cart items:", sessionCart.items.length);
-    }
+    logger.debug('Merging carts', {
+      userCartItems: userCart.items.length,
+      sessionCartItems: sessionCart.items.length
+    });
 
     // Merge session cart items into user cart
+    let itemsAdded = 0;
+    let itemsUpdated = 0;
+
     for (const sessionItem of sessionCart.items) {
       const existingItemIndex = userCart.items.findIndex(
         (userItem) => userItem.product.toString() === sessionItem.product.toString()
@@ -49,15 +117,16 @@ async function mergeCarts(userId, sessionId) {
         userCart.items[existingItemIndex].total = formatPrice(
           userCart.items[existingItemIndex].quantity * userCart.items[existingItemIndex].price
         );
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`Updated existing item quantity to: ${userCart.items[existingItemIndex].quantity}`);
-        }
+        itemsUpdated++;
+        logger.debug('Updated existing item quantity', { 
+          productId: sessionItem.product,
+          newQuantity: userCart.items[existingItemIndex].quantity 
+        });
       } else {
         // New item, add to cart
         userCart.items.push(sessionItem);
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`Added new item to cart: ${sessionItem.product}`);
-        }
+        itemsAdded++;
+        logger.debug('Added new item to cart', { productId: sessionItem.product });
       }
     }
 
@@ -69,50 +138,90 @@ async function mergeCarts(userId, sessionId) {
     await userCart.save();
     await Cart.findByIdAndDelete(sessionCart._id);
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Cart merge complete. Final cart items:", userCart.items.length);
-      console.log("Final cart total:", userCart.totalAmount);
-    }
+    logger.info('Cart merge completed successfully', {
+      itemsAdded,
+      itemsUpdated,
+      finalItemsCount: userCart.items.length,
+      finalTotal: userCart.totalAmount
+    });
+
+    return { 
+      success: true, 
+      message: 'Carts merged successfully',
+      itemsAdded,
+      itemsUpdated
+    };
   } catch (error) {
-    console.error("Error in mergeCarts:", error);
-    // Don't throw error to prevent login failure
+    logger.error('Error in mergeCarts', error);
+    return { 
+      success: false, 
+      message: 'Failed to merge carts',
+      error: error.message 
+    };
   }
 }
 
 exports.signup = async (req, res) => {
   try {
-    const { name, email, password, phoneNumber } = req.body;
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({
-        error: "Email is taken",
-      });
-    }
-
-    const existingPhoneNumber = await User.findOne({ phoneNumber });
-    if (existingPhoneNumber) {
-      return res.status(400).json({
-        error: "Phone number is taken",
-      });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      phoneNumber,
+    logger.debug('Signup request received', { 
+      email: req.body.email,
+      hasName: !!req.body.name,
+      hasPhone: !!req.body.phoneNumber
     });
 
-    user.save();
+    const { name, email, password, phoneNumber } = req.body;
+
+    // Validate input
+    let validatedName, validatedEmail, validatedPassword, validatedPhone;
+    
+    try {
+      validatedName = validateName(name);
+      validatedEmail = validateEmail(email);
+      validatedPassword = validatePassword(password);
+      validatedPhone = validatePhone(phoneNumber);
+    } catch (validationError) {
+      logger.debug('Validation failed', { error: validationError.message });
+      return res.status(400).json({
+        error: validationError.message,
+      });
+    }
+
+    // Check for existing user
+    const existingUser = await User.findOne({ email: validatedEmail });
+    if (existingUser) {
+      logger.debug('Email already exists', { email: validatedEmail });
+      return res.status(400).json({
+        error: "Email is already registered",
+      });
+    }
+
+    const existingPhoneNumber = await User.findOne({ phoneNumber: validatedPhone });
+    if (existingPhoneNumber) {
+      logger.debug('Phone number already exists', { phone: validatedPhone });
+      return res.status(400).json({
+        error: "Phone number is already registered",
+      });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(validatedPassword, salt);
+
+    // Create user
+    const user = await User.create({
+      name: validatedName,
+      email: validatedEmail,
+      password: hashedPassword,
+      phoneNumber: validatedPhone,
+    });
+
+    logger.info('User created successfully', { userId: user._id, email: validatedEmail });
 
     // Check if there's a return URL stored in session
     const returnTo = req.session.returnTo;
     if (returnTo) {
       delete req.session.returnTo;
+      logger.debug('Redirecting after signup', { returnTo });
       return res.status(201).json({
         message: "User registered successfully",
         redirect: returnTo
@@ -123,9 +232,15 @@ exports.signup = async (req, res) => {
       message: "User registered successfully",
     });
   } catch (error) {
-    console.log(error);
+    logger.error('Signup error', error);
+    
+    // Don't expose internal errors in production
+    const errorMessage = process.env.NODE_ENV === 'development' 
+      ? error.message 
+      : 'Registration failed. Please try again.';
+    
     res.status(500).json({
-      error: error.message,
+      error: errorMessage,
     });
   }
 };
@@ -190,28 +305,34 @@ exports.login = async (req, res) => {
 
     await mergeCarts(user._id, req.session.id);
 
-    console.log('Cookie set, checking if it was set properly');
-    console.log('Response headers:', res.getHeaders());
+    logger.debug('Cookie set, checking if it was set properly');
+    logger.debug('Response headers:', res.getHeaders());
 
     // Check if there's a return URL stored in session
     const returnTo = req.session.returnTo;
-    console.log('Found returnTo in session:', returnTo);
+    logger.debug('Found returnTo in session:', returnTo);
     
     if (returnTo) {
       delete req.session.returnTo;
-      console.log('Sending redirect response:', returnTo);
+      logger.debug('Sending redirect response:', returnTo);
       return res.status(200).json({ 
         message: "Login successful",
         redirect: returnTo
       });
     }
 
-    console.log('No redirect, sending normal response');
+    logger.debug('No redirect, sending normal response');
     res.status(200).json({ message: "Login successful" });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error', error);
+    
+    // Don't expose internal errors in production
+    const errorMessage = process.env.NODE_ENV === 'development' 
+      ? error.message 
+      : 'Login failed. Please try again.';
+    
     res.status(500).json({
-      error: "Error in login",
+      error: errorMessage,
     });
   }
 };
