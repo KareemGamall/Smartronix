@@ -428,7 +428,7 @@
                   <div class="password-strength-bar" id="passwordStrengthBar"></div>
                 </div>
                 <small class="form-text" id="passwordHelp">
-                  Password must be at least 8 characters long
+                  Password must contain: uppercase, lowercase, number, and special character
                 </small>
               </div>
 
@@ -505,7 +505,7 @@
         if (/[0-9]/.test(password)) strength++;
         else feedback.push("numbers");
 
-        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) strength++;
         else feedback.push("special characters");
 
         return { strength, feedback };
@@ -520,7 +520,7 @@
         
         if (password.length === 0) {
           passwordStrengthBar.className = 'password-strength-bar';
-          passwordHelp.textContent = 'Password must be at least 8 characters long';
+          passwordHelp.textContent = 'Password must contain: uppercase, lowercase, number, and special character';
           passwordHelp.style.color = 'var(--medium-teal)';
         } else if (strength <= 2) {
           passwordStrengthBar.className = 'password-strength-bar strength-weak';
@@ -600,6 +600,13 @@
 
         if (password.length < 8) {
           showAlert("Password must be at least 8 characters long");
+          return;
+        }
+
+        // Enhanced password validation to match backend
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
+        if (!passwordRegex.test(password)) {
+          showAlert("Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character");
           return;
         }
 
