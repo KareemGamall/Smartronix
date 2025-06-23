@@ -210,6 +210,17 @@ class AdminController {
                 });
             }
 
+            // Generate unique ProductID
+            let productID;
+            let isUnique = false;
+            while (!isUnique) {
+                productID = Math.floor(Math.random() * 900000) + 100000; // Generate 6-digit number
+                const existingProduct = await Product.findOne({ ProductID: productID });
+                if (!existingProduct) {
+                    isUnique = true;
+                }
+            }
+
             // Create product
             const product = await Product.create({
                 name,
@@ -217,7 +228,8 @@ class AdminController {
                 category,
                 stockQuantity: parsedStock,
                 imageUrl: imageUrl,
-                description
+                description,
+                ProductID: productID
             });
 
             console.log('Created product:', product); // Debug log

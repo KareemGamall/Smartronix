@@ -4,13 +4,19 @@ const Category = require("../models/Category");
 const productController = {
   async getAllProducts(req, res) {
     try {
-      console.log("Attempting to fetch products...");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Attempting to fetch products...");
+      }
       // First get products without population
       const products = await Product.find();
-      console.log("Products found:", products.length); // Log number of products found
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Products found:", products.length); // Log number of products found
+      }
 
       if (!products || products.length === 0) {
-        console.log("No products found in database");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("No products found in database");
+        }
         return res.render("pages/Products/products", {
           products: [],
           message: "No products available at the moment.",

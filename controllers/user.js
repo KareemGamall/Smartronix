@@ -1,6 +1,83 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const Cart = require("../models/Cart");
+
+const formatPrice = (price) => Number(price.toFixed(2));
+
+async function mergeCarts(userId, sessionId) {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Starting cart merge for user: ${userId} and session: ${sessionId}`);
+  }
+
+  try {
+    const userCart = await Cart.findOne({ user: userId });
+    const sessionCart = await Cart.findOne({ sessionId: sessionId, user: null });
+
+    if (!sessionCart) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log("No session cart to merge.");
+      }
+      return;
+    }
+
+    if (!userCart) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log("No existing user cart. Assigning session cart to user.");
+      }
+      sessionCart.user = userId;
+      sessionCart.sessionId = null; // Clear session ID since it's now a user cart
+      await sessionCart.save();
+      return;
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Both user and session carts exist. Merging items.");
+      console.log("User cart items:", userCart.items.length);
+      console.log("Session cart items:", sessionCart.items.length);
+    }
+
+    // Merge session cart items into user cart
+    for (const sessionItem of sessionCart.items) {
+      const existingItemIndex = userCart.items.findIndex(
+        (userItem) => userItem.product.toString() === sessionItem.product.toString()
+      );
+
+      if (existingItemIndex > -1) {
+        // Item exists, add quantities
+        userCart.items[existingItemIndex].quantity += sessionItem.quantity;
+        userCart.items[existingItemIndex].total = formatPrice(
+          userCart.items[existingItemIndex].quantity * userCart.items[existingItemIndex].price
+        );
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Updated existing item quantity to: ${userCart.items[existingItemIndex].quantity}`);
+        }
+      } else {
+        // New item, add to cart
+        userCart.items.push(sessionItem);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Added new item to cart: ${sessionItem.product}`);
+        }
+      }
+    }
+
+    // Recalculate total
+    userCart.totalAmount = formatPrice(
+      userCart.items.reduce((total, item) => total + item.total, 0)
+    );
+
+    await userCart.save();
+    await Cart.findByIdAndDelete(sessionCart._id);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Cart merge complete. Final cart items:", userCart.items.length);
+      console.log("Final cart total:", userCart.totalAmount);
+    }
+  } catch (error) {
+    console.error("Error in mergeCarts:", error);
+    // Don't throw error to prevent login failure
+  }
+}
 
 exports.signup = async (req, res) => {
   try {
@@ -56,6 +133,10 @@ exports.signup = async (req, res) => {
 // Login controller
 exports.login = async (req, res) => {
   try {
+    console.log('=== LOGIN REQUEST RECEIVED ===');
+    console.log('Request body:', req.body);
+    console.log('Request headers:', req.headers);
+    
     const { email, password } = req.body;
 
     console.log('Login attempt for email:', email);
@@ -70,17 +151,23 @@ exports.login = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('User not found for email:', email);
       return res.status(400).json({
         error: "Wrong email or password",
       });
     }
 
+    console.log('User found:', user.email);
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      console.log('Invalid password for user:', email);
       return res.status(400).json({
         error: "Wrong email or password",
       });
     }
+
+    console.log('Password validated successfully');
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -101,6 +188,11 @@ exports.login = async (req, res) => {
     console.log('Cookie set, checking if it was set properly');
     console.log('Response headers:', res.getHeaders());
 
+    await mergeCarts(user._id, req.session.id);
+
+    console.log('Cookie set, checking if it was set properly');
+    console.log('Response headers:', res.getHeaders());
+
     // Check if there's a return URL stored in session
     const returnTo = req.session.returnTo;
     console.log('Found returnTo in session:', returnTo);
@@ -117,7 +209,7 @@ exports.login = async (req, res) => {
     console.log('No redirect, sending normal response');
     res.status(200).json({ message: "Login successful" });
   } catch (error) {
-    console.log(error);
+    console.error('Login error:', error);
     res.status(500).json({
       error: "Error in login",
     });

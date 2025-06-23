@@ -7,14 +7,18 @@ const JWT_SECRET = process.env.JWT_SECRET_PHRASE || 'smartronix-jwt-secret-key-2
 // Middleware to check if user is authenticated
 const isAuthenticated = async (req, res, next) => {
   try {
-    console.log('=== AUTH MIDDLEWARE DEBUG ===');
-    console.log('Request URL:', req.originalUrl);
-    console.log('Request method:', req.method);
-    console.log('User authenticated:', !!req.user);
-    console.log('User ID:', req.user?._id);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('=== AUTH MIDDLEWARE DEBUG ===');
+      console.log('Request URL:', req.originalUrl);
+      console.log('Request method:', req.method);
+      console.log('User authenticated:', !!req.user);
+      console.log('User ID:', req.user?._id);
+    }
     
     if (!req.user) {
-      console.log('No user found, redirecting to login');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('No user found, redirecting to login');
+      }
       if (req.xhr || req.headers.accept?.includes('application/json')) {
         return res.status(401).json({ 
           success: false, 
@@ -24,11 +28,15 @@ const isAuthenticated = async (req, res, next) => {
       return res.redirect(`/login?message=Please+log+in+to+continue&redirect=${encodeURIComponent(req.originalUrl)}`);
     }
 
-    console.log('Authentication successful, proceeding to next middleware');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Authentication successful, proceeding to next middleware');
+    }
     next();
   } catch (error) {
     console.error("Auth Error:", error);
-    console.log('Clearing token due to error');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Clearing token due to error');
+    }
     res.clearCookie("token");
     if (req.xhr || req.headers.accept?.includes('application/json')) {
       return res.status(401).json({ 

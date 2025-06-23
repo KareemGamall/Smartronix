@@ -14,9 +14,32 @@ const validatePhoneNumber = (phone) => {
 const orderController = {
   async checkout(req, res) {
     try {
-      const cart = await Cart.findOne({
-        $or: [{ user: req.user._id }, { sessionId: req.session.id }],
-      }).populate("items.product");
+      // Find cart using improved logic
+      let cart = null;
+      
+      // First try to find cart by user ID (for logged in users)
+      if (req.user?._id) {
+        cart = await Cart.findOne({ user: req.user._id }).populate("items.product");
+        if (cart) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Found user cart with ID:', cart._id);
+          }
+        }
+      }
+      
+      // If no user cart found, try session cart
+      if (!cart) {
+        cart = await Cart.findOne({ 
+          sessionId: req.session.id,
+          user: null 
+        }).populate("items.product");
+        
+        if (cart) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Found session cart with ID:', cart._id);
+          }
+        }
+      }
 
       if (!cart || cart.items.length === 0) {
         return res.redirect("/cart/view");
@@ -44,13 +67,15 @@ const orderController = {
     }
   },
 
-  async placeOrder(req, res) {
+  async placeOrder(req, res, next) {
     try {
-      console.log('=== PLACE ORDER DEBUG ===');
-      console.log('User authenticated:', !!req.user);
-      console.log('User ID:', req.user?._id);
-      console.log('Session ID:', req.session.id);
-      console.log('JWT Token present:', !!req.cookies.token);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('=== PLACE ORDER DEBUG ===');
+        console.log('User authenticated:', !!req.user);
+        console.log('User ID:', req.user?._id);
+        console.log('Session ID:', req.session.id);
+        console.log('JWT Token present:', !!req.cookies.token);
+      }
       
       const {
         shippingAddress,
@@ -59,26 +84,52 @@ const orderController = {
         phoneChoice
       } = req.body;
 
-      console.log('Form data:', { addressChoice, phoneChoice });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Form data:', { addressChoice, phoneChoice });
+      }
 
-      const cart = await Cart.findOne({
-        $or: [{
-          user: req.user._id
-        }, {
-          sessionId: req.session.id
-        }],
-      }).populate("items.product");
+      // Find cart using improved logic
+      let cart = null;
+      
+      // First try to find cart by user ID (for logged in users)
+      if (req.user?._id) {
+        cart = await Cart.findOne({ user: req.user._id }).populate("items.product");
+        if (cart) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Found user cart with ID:', cart._id);
+          }
+        }
+      }
+      
+      // If no user cart found, try session cart
+      if (!cart) {
+        cart = await Cart.findOne({ 
+          sessionId: req.session.id,
+          user: null 
+        }).populate("items.product");
+        
+        if (cart) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Found session cart with ID:', cart._id);
+          }
+        }
+      }
 
-      console.log('Cart found:', !!cart);
-      console.log('Cart items count:', cart?.items?.length || 0);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Cart found:', !!cart);
+        console.log('Cart items count:', cart?.items?.length || 0);
+      }
+
+      if (!cart || cart.items.length === 0) {
+        return res.redirect('/cart/view');
+      }
 
       // Get user data from req.user (set by auth middleware)
       const user = req.user;
 
       const renderCheckoutWithError = (error) => {
-        console.log('Rendering checkout with error:', error);
-        if (!cart) {
-          return res.redirect('/cart/view');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Rendering checkout with error:', error);
         }
         const cartWithDelivery = {
           ...cart.toObject(),
@@ -124,7 +175,9 @@ const orderController = {
           return renderCheckoutWithError(errorMessage);
       }
 
-      console.log('Creating order with user ID:', req.user._id);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Creating order with user ID:', req.user._id);
+      }
 
       const order = new Order({
         user: req.user._id,
@@ -140,11 +193,15 @@ const orderController = {
         PaymentMethod: "Cash on Delivery",
       });
 
-      console.log('Saving order...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Saving order...');
+      }
       await order.save();
-      console.log('Order saved successfully, ID:', order._id);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Order saved successfully, ID:', order._id);
+        console.log('Updating product stock...');
+      }
 
-      console.log('Updating product stock...');
       for (const item of cart.items) {
         await Product.findByIdAndUpdate(item.product._id, {
           $inc: {
@@ -153,14 +210,33 @@ const orderController = {
         });
       }
 
-      console.log('Deleting cart...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Deleting cart...');
+      }
       await Cart.findByIdAndDelete(cart._id);
       
-      console.log('Setting session lastOrderId...');
-      req.session.lastOrderId = order._id;
+      // Store order ID in session
+      req.session.lastOrderId = order._id.toString();
 
-      console.log('Redirecting to order success...');
-      res.redirect("/order/success");
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Stored order ID in session:', req.session.lastOrderId);
+      }
+
+      // Force session save and then redirect
+      req.session.save((err) => {
+        if (err) {
+            console.error("Session save error:", err);
+            return next(err);
+        }
+
+        if (process.env.NODE_ENV === 'development') {
+            console.log('Session saved successfully, redirecting to order success...');
+        }
+        
+        // Use absolute path to ensure proper redirect
+        res.redirect("/order/success");
+      });
+      
     } catch (error) {
       console.error("Error placing order:", error);
       res.status(500).render("pages/error", {
@@ -171,28 +247,49 @@ const orderController = {
 
   async orderSuccess(req, res) {
     try {
-      console.log('=== ORDER SUCCESS DEBUG ===');
-      console.log('User authenticated:', !!req.user);
-      console.log('User ID:', req.user?._id);
-      console.log('Session ID:', req.session.id);
-      console.log('JWT Token present:', !!req.cookies.token);
-      console.log('Session lastOrderId:', req.session.lastOrderId);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('=== ORDER SUCCESS DEBUG ===');
+        console.log('User authenticated:', !!req.user);
+        console.log('User ID:', req.user?._id);
+        console.log('Session ID:', req.session.id);
+        console.log('JWT Token present:', !!req.cookies.token);
+        console.log('Session lastOrderId:', req.session.lastOrderId);
+        console.log('Session data:', JSON.stringify(req.session, null, 2));
+      }
       
       const orderId = req.session.lastOrderId;
       if (!orderId) {
-        console.log("No order ID found in session");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("No order ID found in session");
+        }
         return res.redirect("/");
       }
 
-      console.log("Fetching order details for ID:", orderId);
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Fetching order details for ID:", orderId);
+      }
       const order = await Order.findById(orderId).populate("products.product");
 
       if (!order) {
-        console.log("Order not found in database");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Order not found in database");
+        }
         return res.redirect("/");
       }
 
-      console.log("Order found, rendering success page");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Order found, rendering success page");
+        console.log("Order details:", {
+          id: order._id,
+          user: order.user,
+          totalAmount: order.totalAmount,
+          productsCount: order.products.length
+        });
+      }
+      
+      // Clear the order ID from session after successful display
+      delete req.session.lastOrderId;
+      
       res.render("pages/Order/order-success", {
         order: order,
         title: "Order Confirmation",

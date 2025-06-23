@@ -461,6 +461,16 @@ class ECommerceApp {
         // Update cart counter on page load
         await CartManager.updateCartCounter();
 
+        // Check if user just logged in (look for login success message)
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get('message');
+        if (message && message.includes('Login successful')) {
+            // Force cart counter update after login
+            setTimeout(async () => {
+                await CartManager.updateCartCounter();
+            }, 1000);
+        }
+
         // Make removeFromCart globally available for legacy compatibility
         window.removeFromCart = CartManager.removeFromCart;
     }

@@ -2,6 +2,7 @@ const express = require('express');
 const connectDB = require('./config/db');
 const path = require('path');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
@@ -16,21 +17,40 @@ require('dotenv').config();
 const config = {
     port: process.env.PORT || 3000,
     env: process.env.NODE_ENV || 'development',
-    sessionSecret: process.env.SESSION_SECRET || 'smartronix-secure-session-key-2024',
-    jwtSecret: process.env.JWT_SECRET_PHRASE || 'smartronix-jwt-secret-key-2024',
-    mongoUri: process.env.MONGODB_URI || 'mongodb+srv://Smartronix:Smartronix.DB1@cluster74.qi8xpgn.mongodb.net/smartronics?retryWrites=true&w=majority&appName=Cluster74'
+    sessionSecret: process.env.SESSION_SECRET,
+    jwtSecret: process.env.JWT_SECRET_PHRASE,
+    mongoUri: process.env.MONGODB_URI
 };
+
+// Validate required environment variables
+if (!config.sessionSecret) {
+    console.error('SESSION_SECRET environment variable is required');
+    process.exit(1);
+}
+
+if (!config.jwtSecret) {
+    console.error('JWT_SECRET_PHRASE environment variable is required');
+    process.exit(1);
+}
+
+if (!config.mongoUri) {
+    console.error('MONGODB_URI environment variable is required');
+    process.exit(1);
+}
 
 // Connect to database
 connectDB();
 
 const app = express();
 
+// Health check route
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'UP' });
+});
+
 // Security middleware
 app.use(cors());
 app.use(compression());
-
-
 
 // Body parser
 app.use(express.json());
@@ -43,10 +63,17 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        secure: config.env === 'production',
+        secure: false,
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: 'lax'
+    },
+    name: 'smartronics.sid',
+    store: MongoStore.create({
+        mongoUrl: config.mongoUri,
+        ttl: 24 * 60 * 60, // 24 hours
+        autoRemove: 'native'
+    })
 }));
 
 // Logging
@@ -57,7 +84,6 @@ if (config.env === 'development') {
 // Set static folder
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
-
 
 // Set view engine and views directory
 app.set('view engine', 'ejs');
@@ -80,19 +106,27 @@ const adminRoutes = require('./routes/admin');
 app.use(async (req, res, next) => {
     try {
       const token = req.cookies.token;
-      console.log('JWT Middleware - Token:', token ? 'Present' : 'Not present');
+      if (config.env === 'development') {
+        console.log('JWT Middleware - Token:', token ? 'Present' : 'Not present');
+      }
   
       if (!token) {
-        console.log('JWT Middleware - No token, setting user to null');
+        if (config.env === 'development') {
+          console.log('JWT Middleware - No token, setting user to null');
+        }
         res.locals.user = null;
         req.user = null;
         return next();
       }
   
       const decoded = jwt.verify(token, config.jwtSecret);
-      console.log('JWT Middleware - Token decoded:', decoded);
+      if (config.env === 'development') {
+        console.log('JWT Middleware - Token decoded:', decoded);
+      }
       const user = await User.findById(decoded.id);
-      console.log('JWT Middleware - User found:', user ? user.email : 'Not found');
+      if (config.env === 'development') {
+        console.log('JWT Middleware - User found:', user ? user.email : 'Not found');
+      }
   
       res.locals.user = user || null;
       req.user = user || null;
@@ -124,6 +158,16 @@ app.get("/login" , (req,res)=>{
 })
 app.get("/signup" , (req,res)=>{
     res.render("pages/signup", { layout: false })
+})
+
+// Test login page
+app.get("/test-login", (req, res) => {
+    res.sendFile(path.join(__dirname, 'test-login.html'));
+})
+
+// Test cart page
+app.get("/test-cart", (req, res) => {
+    res.sendFile(path.join(__dirname, 'test-cart.html'));
 })
 
 // Error handling
