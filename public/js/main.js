@@ -691,7 +691,7 @@ class ECommerceApp {
         }
 
         // Make removeFromCart globally available for legacy compatibility
-        window.removeFromCart = CartManager.removeFromCart;
+        window.removeFromCart = (productId) => CartManager.removeFromCart(productId);
     }
 }
 

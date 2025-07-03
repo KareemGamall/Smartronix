@@ -217,6 +217,20 @@ exports.signup = async (req, res) => {
 
     logger.info('User created successfully', { userId: user._id, email: validatedEmail });
 
+    // Automatically log in the user after signup
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET_PHRASE || 'smartronix-jwt-secret-key-2024',
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
+    });
+
     // Check if there's a return URL stored in session
     const returnTo = req.session.returnTo;
     if (returnTo) {
