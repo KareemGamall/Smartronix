@@ -459,7 +459,7 @@ class AdminController {
     // Update user
     static async updateUser(req, res) {
         try {
-            const { name, email, phoneNumber, password, role } = req.body;
+            const { name, email, phoneNumber, role } = req.body;
             
             console.log('Received update data:', req.body);
 
@@ -502,12 +502,6 @@ class AdminController {
                 phoneNumber,
                 role
             };
-
-            // Only update password if provided
-            if (password) {
-                const salt = await bcrypt.genSalt(10);
-                updateData.password = await bcrypt.hash(password, salt);
-            }
 
             const user = await User.findByIdAndUpdate(
                 req.params.id,
@@ -684,6 +678,201 @@ class AdminController {
             });
         }
     }
+
+    // Category Management
+    static async getCategories(req, res) {
+        try {
+            const categories = await Category.find().catch(() => []);
+            
+            res.render('pages/Admin/category', {
+                title: 'Category Management',
+                categories,
+                layout: 'layouts/admin'
+            });
+        } catch (error) {
+            console.error('Categories Error:', error);
+            res.status(500).render('pages/error', {
+                message: 'Error loading categories',
+                error: process.env.NODE_ENV === 'development' ? error : {},
+                layout: false
+            });
+        }
+    }
+
+    static async getCategory(req, res) {
+        try {
+            const category = await Category.findById(req.params.id);
+            if (!category) {
+                return res.status(404).json({ success: false, message: 'Category not found' });
+            }
+            res.json(category);
+        } catch (error) {
+            console.error('Get Category Error:', error);
+            res.status(500).json({ success: false, message: 'Error fetching category' });
+        }
+    }
+
+    static async createCategory(req, res) {
+        try {
+            const { name, description, imageUrl, categoryID } = req.body;
+            
+            console.log('Received category data:', req.body);
+
+            // Validate required fields
+            if (!name || !description || !imageUrl || !categoryID) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'All fields are required',
+                    receivedData: req.body
+                });
+            }
+
+            // Check if category name already exists
+            const existingName = await Category.findOne({ name });
+            if (existingName) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Category name already exists'
+                });
+            }
+
+            // Check if category ID already exists
+            const existingID = await Category.findOne({ categoryID });
+            if (existingID) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Category ID already exists'
+                });
+            }
+
+            const category = await Category.create({
+                name,
+                description,
+                imageUrl,
+                categoryID
+            });
+
+            console.log('Created category:', category);
+
+            // Clear categories cache to refresh navbar
+            if (global.categoriesCache) {
+                global.categoriesCache.clear();
+            }
+
+            return res.status(201).json({ 
+                success: true, 
+                message: 'Category created successfully',
+                category
+            });
+        } catch (error) {
+            console.error('Create Category Error:', error);
+            return res.status(500).json({ 
+                success: false, 
+                message: error.message || 'Error creating category',
+                error: process.env.NODE_ENV === 'development' ? error.toString() : undefined
+            });
+        }
+    }
+
+    static async updateCategory(req, res) {
+        try {
+            const { name, description, imageUrl, categoryID } = req.body;
+            
+            console.log('Received update data:', req.body);
+
+            // Validate required fields
+            if (!name || !description || !imageUrl || !categoryID) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'All fields are required',
+                    receivedData: req.body
+                });
+            }
+
+            // Check if category name exists for other categories
+            const existingName = await Category.findOne({ 
+                name, 
+                _id: { $ne: req.params.id } 
+            });
+            if (existingName) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Category name already exists'
+                });
+            }
+
+            // Check if category ID exists for other categories
+            const existingID = await Category.findOne({ 
+                categoryID, 
+                _id: { $ne: req.params.id } 
+            });
+            if (existingID) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Category ID already exists'
+                });
+            }
+
+            const category = await Category.findByIdAndUpdate(
+                req.params.id,
+                {
+                    name,
+                    description,
+                    imageUrl,
+                    categoryID
+                },
+                { new: true, runValidators: true }
+            );
+
+            if (!category) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: 'Category not found' 
+                });
+            }
+
+            console.log('Updated category:', category);
+
+            // Clear categories cache to refresh navbar
+            if (global.categoriesCache) {
+                global.categoriesCache.clear();
+            }
+
+            res.json({ 
+                success: true, 
+                message: 'Category updated successfully',
+                category 
+            });
+        } catch (error) {
+            console.error('Update Category Error:', error);
+            res.status(500).json({ 
+                success: false, 
+                message: error.message || 'Error updating category'
+            });
+        }
+    }
+
+    static async deleteCategory(req, res) {
+        try {
+            const category = await Category.findByIdAndDelete(req.params.id);
+            
+            if (!category) {
+                return res.status(404).json({ success: false, message: 'Category not found' });
+            }
+
+            // Clear categories cache to refresh navbar
+            if (global.categoriesCache) {
+                global.categoriesCache.clear();
+                console.log('Categories cache cleared after category deletion');
+            }
+
+            res.json({ success: true, message: 'Category deleted successfully' });
+        } catch (error) {
+            console.error('Delete Category Error:', error);
+            res.status(500).json({ success: false, message: 'Error deleting category' });
+        }
+    }
+
 }
 
 module.exports = AdminController;

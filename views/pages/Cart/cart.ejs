@@ -2,40 +2,69 @@
 
 <div class="cartpage">
     <% if (!cart || !cart.items || cart.items.length === 0) { %>
-        <div class="empty-cart">
+        <div class="empty-cart mt-4">
             <i class="fa-solid fa-cart-shopping"></i>
             <h2>Your cart is empty</h2>
             <p>Looks like you haven't added anything yet.</p>
             <a href="/products" class="continue-shopping">Continue Shopping</a>
         </div>
     <% } else { %>
-        <div class="cartitems">
+        <div class="cartitems mt-4">
             <% cart.items.forEach(item => { %>
-                <div class="cartitem">
-                    <div class="productincart">
-                        <img src="<%= item.product.imageUrl %>" alt="<%= item.product.name %>" />
-                        <div class="itemdetails">
-                            <p><%= item.product.name %></p>
-                            <span class="itemsize">Price: $<%= item.price.toFixed(2) %></span>
+                <% if (item.product) { %>
+                    <div class="cartitem">
+                        <div class="productincart">
+                            <img src="<%= item.product.imageUrl %>" alt="<%= item.product.name %>" />
+                            <div class="itemdetails">
+                                <p><%= item.product.name %></p>
+                                <span class="itemsize">Price: $<%= item.price.toFixed(2) %></span>
+                            </div>
                         </div>
+                        <span class="itemprice">$<%= item.price.toFixed(2) %></span>
+                        <div class="quantity">
+                            <input type="number" 
+                                   class="qty" 
+                                   value="<%= item.quantity %>" 
+                                   data-price="<%= item.price %>" 
+                                   data-product-id="<%= item.product._id %>"
+                                   data-stock="<%= item.product.stockQuantity %>"
+                                   min="1" 
+                                   max="<%= item.product.stockQuantity %>" />
+                        </div>
+                        <span class="totalprice">$<%= item.total.toFixed(2) %></span>
+                        <button class="remove" 
+                                onclick="removeFromCart('<%= item.product._id %>')">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
-                    <span class="itemprice">$<%= item.price.toFixed(2) %></span>
-                    <div class="quantity">
-                        <input type="number" 
-                               class="qty" 
-                               value="<%= item.quantity %>" 
-                               data-price="<%= item.price %>" 
-                               data-product-id="<%= item.product._id %>"
-                               data-stock="<%= item.product.stockQuantity %>"
-                               min="1" 
-                               max="<%= item.product.stockQuantity %>" />
+                <% } else { %>
+                    <div class="cartitem">
+                        <div class="productincart">
+                            <img src="/img/placeholder-product.png" alt="Product Unavailable" />
+                            <div class="itemdetails">
+                                <p>Product Unavailable</p>
+                                <span class="itemsize">Price: $<%= item.price.toFixed(2) %></span>
+                            </div>
+                        </div>
+                        <span class="itemprice">$<%= item.price.toFixed(2) %></span>
+                        <div class="quantity">
+                            <input type="number" 
+                                   class="qty" 
+                                   value="<%= item.quantity %>" 
+                                   data-price="<%= item.price %>" 
+                                   data-product-id="unknown"
+                                   data-stock="0"
+                                   min="1" 
+                                   max="1" 
+                                   disabled />
+                        </div>
+                        <span class="totalprice">$<%= item.total.toFixed(2) %></span>
+                        <button class="remove" 
+                                onclick="removeFromCart('unknown')">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
-                    <span class="totalprice">$<%= item.total.toFixed(2) %></span>
-                    <button class="remove" 
-                            onclick="removeFromCart('<%= item.product._id %>')">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
+                <% } %>
             <% }); %>
         </div>
 

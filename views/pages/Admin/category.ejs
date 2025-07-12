@@ -1,0 +1,110 @@
+<div class="admin-navbar-layout">
+        <main class="container-fluid">
+            <!-- Page Heading -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Category Management</h1>
+                <button class="btn btn-primary" onclick="showAddCategoryModal()">
+                    <i class="fas fa-plus"></i> Add New Category
+                </button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="mb-3">
+                <input type="text" id="categorySearchInput" class="form-control text-white" placeholder="Search categories...">
+            </div>
+
+            <!-- Categories Table -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">All Categories</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (categories && categories.length > 0) { %>
+                                    <% categories.forEach(category => { %>
+                                        <tr data-category-id="<%= category._id %>" data-description="<%= category.description %>" data-imageurl="<%= category.imageUrl %>" data-categoryid="<%= category.categoryID %>">
+                                            <td>
+                                                <img src="<%= category.imageUrl %>" alt="<%= category.name %>" style="width: 50px; height: 50px; object-fit: cover;">
+                                            </td>
+                                            <td><%= category.categoryID %></td>
+                                            <td class="category-name"><%= category.name %></td>
+                                            <td><%= category.description %></td>
+                                            <td class="action-buttons">
+                                                <button class="btn btn-warning btn-sm" onclick="editCategory('<%= category._id %>')">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" onclick="deleteCategory('<%= category._id %>')">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="5" class="text-center">No categories found</td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add/Edit Category Modal -->
+            <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="categoryModalTitle">Add New Category</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="categoryForm">
+                                <input type="hidden" id="categoryId">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="categoryID" class="form-label">Category ID</label>
+                                            <input type="number" class="form-control" id="categoryID" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="categoryName" class="form-label">Category Name</label>
+                                            <input type="text" class="form-control" id="categoryName" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="categoryDescription" class="form-label">Description</label>
+                                            <textarea class="form-control" id="categoryDescription" rows="4" required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="categoryImageUrl" class="form-label">Image URL</label>
+                                            <input type="url" class="form-control" id="categoryImageUrl" required>
+                                            <div class="mt-2 image-preview">
+                                                <img id="categoryImagePreview" src="" alt="Category Preview" style="max-width: 200px; max-height: 200px; display: none;" class="category-image">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="saveCategory()">Save Category</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>

@@ -455,6 +455,30 @@ const cartController = {
                 };
             }
 
+            // Filter out items with null products and update totals
+            if (cart.items && cart.items.length > 0) {
+                const validItems = cart.items.filter(item => item.product !== null);
+                const invalidItems = cart.items.filter(item => item.product === null);
+                
+                // Log invalid items for debugging
+                if (invalidItems.length > 0) {
+                    logger.debug('Found invalid cart items', { 
+                        invalidCount: invalidItems.length,
+                        validCount: validItems.length 
+                    });
+                }
+                
+                // Update cart with only valid items
+                cart.items = validItems;
+                CartHelper.updateCartTotals(cart);
+                
+                // Save the updated cart if there were invalid items
+                if (invalidItems.length > 0 && cart._id) {
+                    await cart.save();
+                    logger.debug('Updated cart after removing invalid items');
+                }
+            }
+
             const cartWithDelivery = {
                 ...(typeof cart.toObject === 'function' ? cart.toObject() : cart),
                 deliveryFee: DELIVERY_FEE,

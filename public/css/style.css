@@ -5,10 +5,10 @@
 :root {
     /* Simple Color Palette - Light Mode */
     --cream: #f5f1eb;
-    --light-sage: #a8c4c2;
-    --sage: #6b9b99;
-    --teal: #4a7c7a;
-    --dark-teal: #2d5a58;
+    --light-sage: #7ba29e;
+    --sage: #688786;
+    --teal: #4d7f7d;
+    --dark-teal: #2f5f5b;
     
     /* Functional Colors */
     --white: #ffffff;
@@ -64,6 +64,59 @@
     --primary: var(--light-sage);
     --secondary: var(--sage);
     --accent: var(--teal);
+}
+
+/* Dark Mode Category Section */
+[data-theme="dark"] .categories h2 {
+    color: var(--light-sage);
+}
+
+[data-theme="dark"] .category-card {
+    background: #2d2d2d;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .category-card:hover {
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .category-card img {
+    background: #1a1a1a;
+}
+
+[data-theme="dark"] .category-card h3 {
+    color: var(--light-sage);
+}
+
+[data-theme="dark"] .category-card p {
+    color: #e0e0e0;
+    opacity: 0.8;
+}
+
+/* Dark Mode New Arrivals Section */
+[data-theme="dark"] .new-arrivals h2 {
+    color: var(--light-sage);
+}
+
+[data-theme="dark"] .new-arrivals .card {
+    background: #2d2d2d;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .new-arrivals .card:hover {
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .new-arrivals .card-img-top {
+    background: #1a1a1a;
+}
+
+[data-theme="dark"] .new-arrivals .card-title {
+    color: var(--light-sage);
+}
+
+[data-theme="dark"] .new-arrivals .card-text {
+    color: #e0e0e0;
 }
 
 /* Override for the navbar toggler icon in dark mode */
@@ -122,6 +175,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 1030;
+    height: 75px;
     box-shadow: var(--shadow-sm);
 }
 
@@ -130,8 +184,223 @@ body {
     border-bottom-color: var(--border-color);
 }
 
+[data-theme="dark"] .navbar-nav .nav-link {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .navbar-nav .nav-link:hover {
+    color: var(--light-sage) !important;
+}
+
+/* Dark mode dropdown styles */
+[data-theme="dark"] .dropdown-menu {
+    background: rgba(45, 45, 45, 0.95);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background: var(--hover-bg);
+    color: var(--light-sage);
+    transform: translateX(4px);
+}
+
+[data-theme="dark"] .dropdown-item:active {
+    background: var(--light-sage);
+    color: var(--white);
+}
+
+[data-theme="dark"] .dropdown-divider {
+    border-color: var(--border-color);
+    opacity: 0.3;
+}
+
+/* ===============================================
+   MINIMALIST DROPDOWN STYLES
+   =============================================== */
+
+/* Base dropdown menu styles */
+.dropdown-menu {
+    max-width: 200px;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+    animation: dropdownFadeIn 0.2s ease-out;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+/* Dropdown animation */
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dropdown items */
+.dropdown-item {
+    color: var(--text-primary);
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 400;
+    transition: var(--transition);
+    border: none;
+    background: transparent;
+    position: relative;
+}
+
+.dropdown-item:hover {
+    background: var(--hover-bg);
+    color: var(--primary);
+    transform: translateX(4px);
+}
+
+.dropdown-item:active {
+    background: var(--primary);
+    color: var(--white);
+}
+
+/* Dropdown divider */
+.dropdown-divider {
+    margin: 0.5rem 0;
+    border-color: var(--border-color);
+    opacity: 0.5;
+}
+
+/* Ensure dropdowns don't go outside viewport */
+.navbar-nav .dropdown-menu {
+    position: absolute;
+    right: 0;
+    left: auto;
+    transform: none;
+}
+
+/* Specific fix for profile dropdown */
+.navbar-nav .dropdown:last-child .dropdown-menu {
+    right: 0;
+    left: auto;
+}
+
+/* Ensure dropdowns are properly positioned on mobile */
+@media (max-width: 991.98px) {
+    .navbar-nav .dropdown-menu {
+        position: static;
+        right: auto;
+        left: auto;
+        transform: none;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        background: var(--white);
+        border-radius: var(--radius-sm);
+        margin-top: 0.25rem;
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+    
+    [data-theme="dark"] .navbar-nav .dropdown-menu {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Additional viewport safety for dropdowns */
+@media (max-width: 576px) {
+    .navbar-nav .dropdown-menu {
+        max-width: calc(100vw - 2rem);
+        margin-left: 1rem;
+        margin-right: 1rem;
+        border-radius: var(--radius-sm);
+        padding: 0.25rem 0;
+    }
+    
+    .dropdown-item {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+[data-theme="dark"] .navbar .form-control {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .navbar .form-control:focus {
+    background: var(--card-bg);
+    border-color: var(--light-sage);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .navbar .form-control::placeholder {
+    color: var(--text-muted);
+}
+
+/* Dark mode form controls */
+[data-theme="dark"] .form-control {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control:focus {
+    background: var(--card-bg);
+    border-color: var(--light-sage);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 2px rgba(74, 124, 122, 0.1);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .form-label {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-select {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-select:focus {
+    background: var(--card-bg);
+    border-color: var(--light-sage);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 2px rgba(74, 124, 122, 0.1);
+}
+
+/* Dark mode disabled form controls */
+[data-theme="dark"] .form-control:disabled {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+[data-theme="dark"] .form-select:disabled {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
 .navbar-brand {
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: 600;
     color: var(--primary) !important;
     transition: var(--transition);
@@ -275,20 +544,40 @@ h2 {
 /* ===============================================
    CARDS & GRIDS
    =============================================== */
-.products-grid, .categories-grid {
+.products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-top: 2rem;
 }
 
+.categories {
+    padding: 4rem 0;
+}
+
+.categories h2 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--dark-teal);
+    text-align: center;
+    margin-bottom: 3rem;
+    letter-spacing: 0.5px;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
 /* Home page categories - force 4 columns in one row */
 .categories .categories-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    gap: 2rem;
 }
 
-.product-card, .category-card {
+.product-card {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
@@ -299,10 +588,29 @@ h2 {
     flex-direction: column;
 }
 
-.product-card:hover, .category-card:hover {
+.product-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
     border-color: var(--accent);
+}
+
+.category-card {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+}
+
+.category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
 }
 
 .card {
@@ -320,7 +628,7 @@ h2 {
     box-shadow: var(--shadow-md);
 }
 
-.card-img-top, .product-card img, .category-card img {
+.card-img-top, .product-card img {
     width: 100%;
     height: 250px;
     object-fit: contain;
@@ -329,12 +637,80 @@ h2 {
     transition: var(--transition);
 }
 
-/* Fix for product cards in home page - show full image */
-.new-arrivals .card-img-top {
-    height: 250px;
+.category-card img {
+    width: 100%;
+    height: 220px;
     object-fit: contain;
-    padding: 1rem;
+    padding: 2rem;
     background: var(--background);
+    transition: all 0.3s ease;
+}
+
+.category-card:hover img {
+    transform: scale(1.05);
+}
+
+/* ===============================================
+   NEW ARRIVALS SECTION
+   =============================================== */
+.new-arrivals {
+    padding: 4rem 0;
+}
+
+.new-arrivals h2 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--dark-teal);
+    text-align: center;
+    margin-bottom: 3rem;
+    letter-spacing: 0.5px;
+}
+
+.new-arrivals .card {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+}
+
+.new-arrivals .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+}
+
+.new-arrivals .card-img-top {
+    height: 220px;
+    object-fit: contain;
+    padding: 2rem;
+    background: var(--background);
+    transition: all 0.3s ease;
+}
+
+.new-arrivals .card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+.new-arrivals .card-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--dark-teal);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.3px;
+}
+
+.new-arrivals .card-text {
+    font-size: 0.9rem;
+    color: var(--sage);
+    line-height: 1.4;
+    opacity: 0.8;
+}
+
+.new-arrivals .card-footer {
+    background: var(--background);
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 1.5rem;
 }
 
 /* Fix for all product cards - show full image */
@@ -352,17 +728,33 @@ h2 {
     flex-direction: column;
 }
 
-.card-title, .product-card h3, .category-card h3 {
+.card-title, .product-card h3 {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
+.category-card h3 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--dark-teal);
+    margin: 1.5rem 1rem 0.5rem 1rem;
+    letter-spacing: 0.3px;
+}
+
 .card-text {
     color: var(--text-muted);
     font-size: 0.9rem;
     flex: 1;
+}
+
+.category-card p {
+    font-size: 0.9rem;
+    color: var(--sage);
+    margin: 0 1rem 1.5rem 1rem;
+    line-height: 1.4;
+    opacity: 0.8;
 }
 
 .card-footer {
@@ -379,16 +771,11 @@ h2 {
     margin: 0.5rem 0;
 }
 
-/* Category cards specific */
-.category-card {
-    text-align: center;
-    cursor: pointer;
-}
-
 .category-link {
     text-decoration: none;
     color: inherit;
     display: block;
+    transition: all 0.3s ease;
 }
 
 .category-link:hover {
@@ -456,6 +843,19 @@ h2 {
     max-width: 1000px;
     margin: 0 auto;
     padding: 2rem 1rem;
+}
+
+/* Additional spacing for cart and profile cards */
+.cartpage .empty-cart,
+.cartpage .cartitems {
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .cartpage .empty-cart,
+    .cartpage .cartitems {
+        margin-top: 1.5rem;
+    }
 }
 
 .empty-cart {
@@ -572,6 +972,12 @@ h2 {
 .quantity input:focus {
     border-color: var(--primary);
     outline: none;
+}
+
+.quantity input:disabled {
+    background: var(--text-muted);
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .remove {
@@ -844,7 +1250,21 @@ h2 {
         margin-bottom: 2rem;
     }
     
-    .products-grid, .categories-grid {
+    .products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .categories {
+        padding: 3rem 0;
+    }
+    
+    .categories h2 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .categories-grid {
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 1rem;
     }
@@ -852,7 +1272,26 @@ h2 {
     /* Home page categories - responsive */
     .categories .categories-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
+        gap: 1.5rem;
+    }
+    
+    .category-card img {
+        height: 180px;
+        padding: 1.5rem;
+    }
+    
+    .new-arrivals {
+        padding: 3rem 0;
+    }
+    
+    .new-arrivals h2 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .new-arrivals .card-img-top {
+        height: 180px;
+        padding: 1.5rem;
     }
     
     .cartitem {
@@ -864,6 +1303,12 @@ h2 {
     
     .productincart {
         justify-content: center;
+    }
+    
+    .remove {
+        width: auto;
+        margin: 0 auto;
+        display: inline-block;
     }
     
     .hero-image img {
@@ -880,14 +1325,64 @@ h2 {
 }
 
 @media (max-width: 480px) {
-    .products-grid, .categories-grid {
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .categories {
+        padding: 2rem 0;
+    }
+    
+    .categories h2 {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .categories-grid {
         grid-template-columns: 1fr;
     }
     
     /* Home page categories - single column on mobile */
     .categories .categories-grid {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: 1.5rem;
+    }
+    
+    .category-card img {
+        height: 160px;
+        padding: 1rem;
+    }
+    
+    .category-card h3 {
+        font-size: 1.1rem;
+        margin: 1rem 1rem 0.5rem 1rem;
+    }
+    
+    .category-card p {
+        font-size: 0.85rem;
+        margin: 0 1rem 1rem 1rem;
+    }
+    
+    .new-arrivals {
+        padding: 2rem 0;
+    }
+    
+    .new-arrivals h2 {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .new-arrivals .card-img-top {
+        height: 160px;
+        padding: 1rem;
+    }
+    
+    .new-arrivals .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .new-arrivals .card-text {
+        font-size: 0.85rem;
     }
     
     .navbar-brand {
@@ -901,6 +1396,12 @@ h2 {
     
     .product-container {
         padding: 1rem;
+    }
+    
+    .remove {
+        width: auto;
+        margin: 0 auto;
+        display: inline-block;
     }
 }
 

@@ -9,6 +9,7 @@ const compression = require('compression');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const User = require('./models/user');    
+const Category = require('./models/Category');
 const jwt = require("jsonwebtoken");
 const expressLayouts = require('express-ejs-layouts');
 require('dotenv').config();
@@ -95,6 +96,80 @@ app.set('layout', false); // Set default layout to false
 app.set("layout extractScripts", true);
 app.set("layout extractStyles", true);
 
+// Categories cache
+let categoriesCache = {
+    data: null,
+    timestamp: null,
+    isValid: function() {
+        return this.data && this.timestamp && 
+               (Date.now() - this.timestamp) < (1 * 60 * 1000); // 1 minute
+    },
+    set: function(data) {
+        this.data = data;
+        this.timestamp = Date.now();
+    },
+    get: function() {
+        return this.data;
+    },
+    clear: function() {
+        this.data = null;
+        this.timestamp = null;
+    }
+};
+
+// Make cache globally available for controllers
+global.categoriesCache = categoriesCache;
+
+// Global categories middleware - must be before routes
+app.use(async (req, res, next) => {
+    try {
+        // Check cache first
+        if (categoriesCache.isValid()) {
+            res.locals.categories = categoriesCache.get();
+            return next();
+        }
+
+        // Fetch all categories for the navbar
+        const categories = await Category.find().sort({ categoryID: 1 }).lean();
+        res.locals.categories = categories || [];
+        
+        // Cache the results
+        categoriesCache.set(categories);
+        next();
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        res.locals.categories = [];
+        next();
+    }
+});
+
+// Ensure categories is always defined for all routes
+app.use((req, res, next) => {
+    if (typeof res.locals.categories === 'undefined') {
+        res.locals.categories = [];
+    }
+    next();
+});
+
+// Add a route to manually clear categories cache
+app.post('/admin/clear-categories-cache', (req, res) => {
+    try {
+        if (global.categoriesCache) {
+            global.categoriesCache.clear();
+        }
+        res.json({ success: true, message: 'Categories cache cleared' });
+    } catch (error) {
+        console.error('Error clearing categories cache:', error);
+        res.status(500).json({ success: false, message: 'Error clearing cache' });
+    }
+});
+
+// Set path for all routes
+app.use((req, res, next) => {
+    res.locals.path = req.path;
+    next();
+});
+
 // Import routes
 const homeRoutes = require('./routes/home');
 const productRoutes = require('./routes/products');
@@ -146,12 +221,6 @@ app.use('/cart', cartRoutes);
 app.use('/order', orderRoutes);
 app.use('/api/user', userRoutes);
 app.use('/admin', adminRoutes);
-
-// Set path for all routes
-app.use((req, res, next) => {
-    res.locals.path = req.path;
-    next();
-});
 
 app.get("/login" , (req,res)=>{
     res.render("pages/login", { layout: false })

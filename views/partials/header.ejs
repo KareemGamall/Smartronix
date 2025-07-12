@@ -54,24 +54,15 @@
                   <li>
                     <a class="dropdown-item" href="/products">All Products</a>
                   </li>
-                  <li>
-                    <a class="dropdown-item" href="/products/category/1"
-                      >Mobile Phones</a
-                    >
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="/products/category/2">TVs</a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="/products/category/3"
-                      >Headphones</a
-                    >
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="/products/category/4"
-                      >Laptops</a
-                    >
-                  </li>
+                  <% if (typeof categories !== 'undefined' && categories && categories.length > 0) { %>
+                    <% categories.forEach(function(category) { %>
+                      <li>
+                        <a class="dropdown-item" href="/products/category/<%= category.categoryID %>"
+                          ><%= category.name %></a
+                        >
+                      </li>
+                    <% }); %>
+                  <% } %>
                 </ul>
               </li>
               <li class="nav-item">

@@ -27,6 +27,13 @@ router.delete('/products/:id', AdminController.deleteProduct);
 // Order Management
 router.get('/orders', AdminController.getOrders);
 
+// Category Management
+router.get('/categories', AdminController.getCategories);
+router.get('/categories/:id', AdminController.getCategory);
+router.post('/categories', AdminController.createCategory);
+router.put('/categories/:id', AdminController.updateCategory);
+router.delete('/categories/:id', AdminController.deleteCategory);
+
 // Admin Profile
 router.get('/profile', AdminController.getProfile);
 

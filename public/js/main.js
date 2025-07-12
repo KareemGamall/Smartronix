@@ -622,6 +622,26 @@ class BootstrapManager {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     }
+
+    static initializeDropdowns() {
+        // Fix dropdown positioning for profile dropdown
+        const profileDropdown = document.querySelector('.navbar-nav .dropdown:last-child');
+        if (profileDropdown) {
+            const dropdownMenu = profileDropdown.querySelector('.dropdown-menu');
+            if (dropdownMenu) {
+                // Ensure dropdown opens to the left if it would go outside viewport
+                profileDropdown.addEventListener('show.bs.dropdown', function() {
+                    const rect = dropdownMenu.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    
+                    if (rect.right > viewportWidth) {
+                        dropdownMenu.style.left = 'auto';
+                        dropdownMenu.style.right = '0';
+                    }
+                });
+            }
+        }
+    }
 }
 
 // Theme Manager
@@ -662,6 +682,7 @@ class ECommerceApp {
     static async initialize() {
         // Initialize Bootstrap components
         BootstrapManager.initializeTooltips();
+        BootstrapManager.initializeDropdowns();
 
         // Initialize cart functionality
         EventHandlers.initializeCartButtons();
