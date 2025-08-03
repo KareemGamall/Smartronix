@@ -15,7 +15,7 @@ const VALIDATION = {
 };
 
 // Password strength requirements
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
+// const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,14 +40,8 @@ const logger = {
 
 // Validation functions
 const validatePassword = (password) => {
-  if (password.length < VALIDATION.MIN_PASSWORD_LENGTH) {
-    throw new Error(`Password must be at least ${VALIDATION.MIN_PASSWORD_LENGTH} characters long`);
-  }
-  if (password.length > VALIDATION.MAX_PASSWORD_LENGTH) {
-    throw new Error(`Password must be no more than ${VALIDATION.MAX_PASSWORD_LENGTH} characters long`);
-  }
-  if (!PASSWORD_REGEX.test(password)) {
-    throw new Error('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+  if (password.length < 6) {
+    throw new Error('Password must be at least 6 characters long');
   }
   return password;
 };
