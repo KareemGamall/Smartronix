@@ -116,7 +116,7 @@ class AdminController {
             
             console.log('Rendering dashboard with stats:', stats);
             
-            res.render('pages/admin/dashboard', {
+            res.render('pages/Admin/dashboard', {
                 title: 'Admin Dashboard',
                 stats,
                 layout: 'layouts/admin'
@@ -161,7 +161,7 @@ class AdminController {
             
             console.log('Users fetched:', users.length);
             
-            res.render('pages/admin/users', {
+            res.render('pages/Admin/users', {
                 title: 'User Management',
                 users,
                 layout: 'layouts/admin'
@@ -201,7 +201,7 @@ class AdminController {
             console.log('Products fetched:', products.length);
             console.log('Categories fetched:', categories.length);
             
-            res.render('pages/admin/products', {
+            res.render('pages/Admin/products', {
                 title: 'Product Management',
                 products,
                 categories,
@@ -727,7 +727,7 @@ class AdminController {
             
             console.log('Orders fetched:', orders.length);
             
-            res.render('pages/admin/orders', {
+            res.render('pages/Admin/orders', {
                 title: 'Order Management',
                 orders,
                 layout: 'layouts/admin'

@@ -277,6 +277,28 @@ app.get("/test-admin", (req, res) => {
     });
 })
 
+// Test admin view rendering
+app.get("/test-admin-view", (req, res) => {
+    try {
+        res.render('pages/Admin/dashboard', {
+            title: 'Test Dashboard',
+            stats: {
+                totalUsers: 0,
+                totalProducts: 0,
+                monthlyRevenue: 0,
+                annualRevenue: 0
+            },
+            layout: 'layouts/admin'
+        });
+    } catch (error) {
+        res.json({
+            error: 'View rendering failed',
+            message: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+})
+
 // Error handling
 app.use((err, req, res, next) => {
     console.error(err.stack);
