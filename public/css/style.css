@@ -179,6 +179,53 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
+/* Three-section navbar layout */
+.navbar-collapse {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Section 1: Navigation Links */
+.navigation-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+}
+
+.navigation-section .nav-item {
+    margin: 0;
+}
+
+/* Section 2: Search Bar */
+.search-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    max-width: 400px;
+    margin: 0 2rem;
+}
+
+.search-section form {
+    width: 100%;
+    max-width: 350px;
+}
+
+/* Section 3: Icons */
+.icons-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+}
+
+.icons-section .nav-item {
+    margin: 0;
+}
+
 [data-theme="dark"] .navbar {
     background: var(--card-bg) !important;
     border-bottom-color: var(--border-color);
@@ -586,6 +633,8 @@ h2 {
     height: 100%;
     display: flex;
     flex-direction: column;
+    width: 85%;
+    margin: 0 auto;
 }
 
 .product-card:hover {
@@ -1403,6 +1452,24 @@ h2 {
         margin: 0 auto;
         display: inline-block;
     }
+    
+    /* Mobile navbar adjustments */
+    .search-section {
+        margin: 0.5rem auto;
+    }
+    
+    .search-section form {
+        max-width: 280px;
+    }
+    
+    .icons-section {
+        gap: 1rem;
+    }
+    
+    /* Product card width adjustment for mobile */
+    .product-card {
+        width: 95%;
+    }
 }
 
 /* ===============================================
@@ -1481,8 +1548,9 @@ h2 {
    =============================================== */
 @media (max-width: 991.98px) { /* Corresponds to Bootstrap's 'lg' breakpoint */
   
-  /* Style the container for the expanded menu */
+  /* Override the three-section layout for mobile */
   .navbar-collapse {
+    display: block !important;
     margin-top: 1rem;
     padding: 1rem;
     background-color: var(--card-bg);
@@ -1491,28 +1559,42 @@ h2 {
     box-shadow: var(--shadow-md);
   }
   
-  /* Center-align the navigation links */
-  .navbar-nav {
+  /* Section 1: Navigation Links - Stack vertically */
+  .navigation-section {
+    flex-direction: column !important;
     text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
   }
   
-  /* Adjust search bar for better fit within the collapsed menu */
-  .navbar .d-flex[role="search"] {
-    margin: 1rem auto; /* Center the search bar */
+  .navigation-section .nav-item {
+    margin: 0.5rem 0;
+  }
+  
+  /* Section 2: Search Bar - Center and full width */
+  .search-section {
+    justify-content: center;
+    margin: 1rem auto;
+    max-width: 100%;
+  }
+  
+  .search-section form {
+    width: 100%;
     max-width: 320px;
   }
   
-  /* Arrange the icons horizontally */
-  .navbar-nav.d-flex.align-items-center {
-    flex-direction: row !important; /* Override Bootstrap's stacking */
+  /* Section 3: Icons - Arrange horizontally */
+  .icons-section {
+    flex-direction: row !important;
     justify-content: center;
-    gap: 1.5rem; /* Space out the icons */
+    gap: 1.5rem;
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid var(--border-color);
   }
 
-  /* Ensure dropdown menus (like categories and user) look good */
+  /* Ensure dropdown menus look good */
   .navbar-nav .dropdown-menu {
     text-align: center;
     background-color: var(--background);
