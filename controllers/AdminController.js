@@ -8,12 +8,31 @@ class AdminController {
     // Dashboard
     static async getDashboard(req, res) {
         try {
+            console.log('=== DASHBOARD DEBUG ===');
+            console.log('User:', req.user?._id);
+            console.log('Environment:', process.env.NODE_ENV);
+            
+            // Check if models are available
+            if (!User || !Product || !Order) {
+                console.error('Models not available:', { User: !!User, Product: !!Product, Order: !!Order });
+                throw new Error('Database models not available');
+            }
+            
             const [totalUsers, totalProducts, orders] = await Promise.all([
-                User.countDocuments().catch(() => 0),
-                Product.countDocuments().catch(() => 0),
+                User.countDocuments().catch((err) => {
+                    console.error('Error counting users:', err);
+                    return 0;
+                }),
+                Product.countDocuments().catch((err) => {
+                    console.error('Error counting products:', err);
+                    return 0;
+                }),
                 Order.find()
                     .populate('products.product')
-                    .catch(() => [])
+                    .catch((err) => {
+                        console.error('Error fetching orders:', err);
+                        return [];
+                    })
             ]);
 
             console.log('Total orders found:', orders.length);
@@ -88,30 +107,60 @@ class AdminController {
                 currentDate: now.toISOString()
             });
 
+            const stats = {
+                totalUsers: totalUsers || 0,
+                totalProducts: totalProducts || 0,
+                monthlyRevenue: monthlyRevenue || 0,
+                annualRevenue: annualRevenue || 0
+            };
+            
+            console.log('Rendering dashboard with stats:', stats);
+            
             res.render('pages/admin/dashboard', {
                 title: 'Admin Dashboard',
-                stats: {
-                    totalUsers,
-                    totalProducts,
-                    monthlyRevenue,
-                    annualRevenue
-                },
+                stats,
                 layout: 'layouts/admin'
             });
         } catch (error) {
             console.error('Dashboard Error:', error);
-            res.status(500).render('pages/error', {
-                message: 'Error loading dashboard',
-                error: process.env.NODE_ENV === 'development' ? error : {},
-                layout: false
-            });
+            
+            // Try to render a simple error page first
+            try {
+                res.status(500).render('pages/error', {
+                    message: 'Error loading dashboard',
+                    error: process.env.NODE_ENV === 'development' ? error : {},
+                    layout: false
+                });
+            } catch (renderError) {
+                console.error('Error rendering error page:', renderError);
+                // Fallback to simple JSON response
+                res.status(500).json({
+                    error: 'Dashboard Error',
+                    message: error.message,
+                    stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+                });
+            }
         }
     }
 
     // User Management
     static async getUsers(req, res) {
         try {
-            const users = await User.find().select('-password').catch(() => []);
+            console.log('=== USERS DEBUG ===');
+            console.log('User:', req.user?._id);
+            
+            if (!User) {
+                console.error('User model not available');
+                throw new Error('User model not available');
+            }
+            
+            const users = await User.find().select('-password').catch((err) => {
+                console.error('Error fetching users:', err);
+                return [];
+            });
+            
+            console.log('Users fetched:', users.length);
+            
             res.render('pages/admin/users', {
                 title: 'User Management',
                 users,
@@ -130,10 +179,27 @@ class AdminController {
     // Product Management
     static async getProducts(req, res) {
         try {
+            console.log('=== PRODUCTS DEBUG ===');
+            console.log('User:', req.user?._id);
+            
+            if (!Product || !Category) {
+                console.error('Models not available:', { Product: !!Product, Category: !!Category });
+                throw new Error('Database models not available');
+            }
+            
             const [products, categories] = await Promise.all([
-                Product.find().populate('category').catch(() => []),
-                Category.find().catch(() => [])
+                Product.find().populate('category').catch((err) => {
+                    console.error('Error fetching products:', err);
+                    return [];
+                }),
+                Category.find().catch((err) => {
+                    console.error('Error fetching categories:', err);
+                    return [];
+                })
             ]);
+            
+            console.log('Products fetched:', products.length);
+            console.log('Categories fetched:', categories.length);
             
             res.render('pages/admin/products', {
                 title: 'Product Management',
@@ -642,10 +708,25 @@ class AdminController {
     // Order Management
     static async getOrders(req, res) {
         try {
+            console.log('=== ORDERS DEBUG ===');
+            console.log('User:', req.user?._id);
+            
+            if (!Order) {
+                console.error('Order model not available');
+                throw new Error('Order model not available');
+            }
+            
             const orders = await Order.find()
                 .populate('user')
                 .populate('products.product')
-                .sort({ OrderDate: -1 });
+                .sort({ OrderDate: -1 })
+                .catch((err) => {
+                    console.error('Error fetching orders:', err);
+                    return [];
+                });
+            
+            console.log('Orders fetched:', orders.length);
+            
             res.render('pages/admin/orders', {
                 title: 'Order Management',
                 orders,

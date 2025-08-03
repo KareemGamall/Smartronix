@@ -267,6 +267,16 @@ app.get("/test-session", (req, res) => {
     });
 })
 
+// Test admin access
+app.get("/test-admin", (req, res) => {
+    res.json({
+        user: req.user ? { id: req.user._id, email: req.user.email, role: req.user.role } : null,
+        isAdmin: req.user?.role === 'admin',
+        session: req.session,
+        cookies: req.cookies
+    });
+})
+
 // Error handling
 app.use((err, req, res, next) => {
     console.error(err.stack);
