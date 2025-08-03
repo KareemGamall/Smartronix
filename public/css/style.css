@@ -1548,53 +1548,68 @@ h2 {
    =============================================== */
 @media (max-width: 991.98px) { /* Corresponds to Bootstrap's 'lg' breakpoint */
   
-  /* Override the three-section layout for mobile */
+  /* Make navbar-collapse a horizontal flex container */
   .navbar-collapse {
-    display: block !important;
-    margin-top: 1rem;
-    padding: 1rem;
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
-  }
-  
-  /* Section 1: Navigation Links - Stack vertically */
-  .navigation-section {
-    flex-direction: column !important;
-    text-align: center;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-  
-  .navigation-section .nav-item {
-    margin: 0.5rem 0;
-  }
-  
-  /* Section 2: Search Bar - Center and full width */
-  .search-section {
-    justify-content: center;
-    margin: 1rem auto;
-    max-width: 100%;
-  }
-  
-  .search-section form {
-    width: 100%;
-    max-width: 320px;
-  }
-  
-  /* Section 3: Icons - Arrange horizontally */
-  .icons-section {
+    display: flex !important;
     flex-direction: row !important;
-    justify-content: center;
-    gap: 1.5rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0;
+    padding: 0 0.5rem;
+    background-color: var(--card-bg);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    width: 100%;
   }
 
-  /* Ensure dropdown menus look good */
+  /* Section 1: Navigation Links - horizontal */
+  .navigation-section {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-bottom: none;
+    text-align: left;
+  }
+
+  .navigation-section .nav-item {
+    margin: 0 0.25rem;
+  }
+
+  /* Section 2: Search Bar - center */
+  .search-section {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    max-width: 100%;
+    flex: 1;
+  }
+
+  .search-section form {
+    width: 100%;
+    max-width: 180px;
+  }
+
+  /* Section 3: Icons - horizontal, right-aligned */
+  .icons-section {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-top: none;
+  }
+
+  /* Remove extra padding/borders from dropdowns */
   .navbar-nav .dropdown-menu {
     text-align: center;
     background-color: var(--background);
