@@ -61,8 +61,8 @@ app.use(cookieParser());
 // Session middleware
 app.use(session({
     secret: config.sessionSecret,
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: { 
         secure: config.env === 'production',
         httpOnly: true,
@@ -73,7 +73,8 @@ app.use(session({
     store: MongoStore.create({
         mongoUrl: config.mongoUri,
         ttl: 24 * 60 * 60, // 24 hours
-        autoRemove: 'native'
+        autoRemove: 'native',
+        touchAfter: 24 * 3600 // time period in seconds
     })
 }));
 
@@ -237,6 +238,33 @@ app.get("/test-login", (req, res) => {
 // Test cart page
 app.get("/test-cart", (req, res) => {
     res.sendFile(path.join(__dirname, 'test-cart.html'));
+})
+
+// Debug route for session testing
+app.get("/debug-session", (req, res) => {
+    res.json({
+        sessionId: req.session.id,
+        sessionData: req.session,
+        user: req.user ? { id: req.user._id, email: req.user.email } : null,
+        cookies: req.cookies
+    });
+})
+
+// Test session storage
+app.get("/test-session", (req, res) => {
+    req.session.testValue = "test-" + Date.now();
+    req.session.save((err) => {
+        if (err) {
+            res.json({ error: "Session save failed", details: err.message });
+        } else {
+            res.json({ 
+                success: true, 
+                sessionId: req.session.id,
+                testValue: req.session.testValue,
+                sessionData: req.session
+            });
+        }
+    });
 })
 
 // Error handling

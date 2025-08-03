@@ -251,13 +251,13 @@ const orderController = {
       logger.debug('Deleting cart');
       await Cart.findByIdAndDelete(cart._id, { session });
       
-      // Store order ID in session
-      req.session.lastOrderId = order._id.toString();
-      logger.debug('Stored order ID in session', { orderId: req.session.lastOrderId });
-
       // Commit transaction
       await session.commitTransaction();
       logger.debug('Transaction committed successfully');
+
+      // Store order ID in session and save
+      req.session.lastOrderId = order._id.toString();
+      logger.debug('Stored order ID in session', { orderId: req.session.lastOrderId });
 
       // Force session save and then redirect
       req.session.save((err) => {
@@ -267,7 +267,16 @@ const orderController = {
         }
 
         logger.debug('Session saved successfully, redirecting to order success');
-        res.redirect("/order/success");
+        logger.debug('Session data after save:', {
+          sessionId: req.session.id,
+          lastOrderId: req.session.lastOrderId,
+          sessionData: req.session
+        });
+        
+        // Add a small delay to ensure session is fully saved
+        setTimeout(() => {
+          res.redirect(`/order/success?orderId=${order._id}`);
+        }, 100);
       });
       
     } catch (error) {
@@ -294,17 +303,53 @@ const orderController = {
       console.log('Session lastOrderId:', req.session.lastOrderId);
       console.log('Session data:', JSON.stringify(req.session, null, 2));
       
-      const orderId = req.session.lastOrderId;
-      if (!orderId) {
-        console.log("No order ID found in session");
-        return res.redirect("/");
+      // Try multiple sources for order ID
+      let orderId = req.session.lastOrderId;
+      let order = null;
+      
+      // First try session
+      if (orderId) {
+        console.log("Found order ID in session:", orderId);
+        order = await Order.findById(orderId).populate("products.product");
+        if (order && order.user.toString() === req.user._id.toString()) {
+          console.log("Order found from session");
+        } else {
+          console.log("Order not found from session or user mismatch");
+          order = null;
+        }
       }
-
-      console.log("Fetching order details for ID:", orderId);
-      const order = await Order.findById(orderId).populate("products.product");
-
+      
+      // If no order from session, try query parameter
       if (!order) {
-        console.log("Order not found in database");
+        const queryOrderId = req.query.orderId;
+        if (queryOrderId) {
+          console.log("Trying order ID from query parameter:", queryOrderId);
+          order = await Order.findById(queryOrderId).populate("products.product");
+          if (order && order.user.toString() === req.user._id.toString()) {
+            console.log("Order found from query parameter");
+          } else {
+            console.log("Order not found from query parameter or user mismatch");
+            order = null;
+          }
+        }
+      }
+      
+      // If still no order, try to find the most recent order for this user
+      if (!order) {
+        console.log("Trying to find most recent order for user");
+        order = await Order.findOne({ 
+          user: req.user._id 
+        }).sort({ OrderDate: -1 }).populate("products.product");
+        
+        if (order) {
+          console.log("Found most recent order:", order._id);
+        } else {
+          console.log("No orders found for user");
+        }
+      }
+      
+      if (!order) {
+        console.log("No order found, redirecting to home");
         return res.redirect("/");
       }
 
