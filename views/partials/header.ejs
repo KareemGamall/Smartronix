@@ -21,118 +21,135 @@
   </head>
   <body class="d-flex flex-column min-vh-100">
     <header>
-      <nav class="navbar navbar-expand-lg bg-dark">
-        <div class="container-fluid">
-          <a class="navbar-brand text-light" href="/">Smartronix</a>
+  <nav class="navbar navbar-expand-lg  bg-dark">
+    <div class="container-fluid px-3">
+      <!-- Brand -->
+      <a class="navbar-brand text-light" href="/">Smartronix</a>
 
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarContent"
-            aria-controls="navbarContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span class="navbar-toggler-icon"></span>
-          </button>
+      <!-- Mobile toggle button -->
+      <button
+        class="navbar-toggler border-0 p-1"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarContent"
+        aria-controls="navbarContent"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-          <div class="collapse navbar-collapse" id="navbarContent">
-            <!-- Section 1: Navigation Links -->
-            <ul class="navbar-nav navigation-section">
-              <li class="nav-item">
-                <a class="nav-link text-light" href="/">Home</a>
+      <!-- Collapsible content -->
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <!-- Navigation Links -->
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link text-light" href="/">Home</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a
+              class="nav-link text-light dropdown-toggle"
+              href="#"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              >Categories</a
+            >
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" href="/products">All Products</a>
               </li>
-              <li class="nav-item dropdown">
-                <a
-                  class="nav-link text-light"
-                  href="#"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  >Categories</a
-                >
-                <ul class="dropdown-menu">
+              <% if (typeof categories !== 'undefined' && categories && categories.length > 0) { %>
+                <% categories.forEach(function(category) { %>
                   <li>
-                    <a class="dropdown-item" href="/products">All Products</a>
+                    <a class="dropdown-item" href="/products/category/<%= category.categoryID %>"
+                      ><%= category.name %></a
+                    >
                   </li>
-                  <% if (typeof categories !== 'undefined' && categories && categories.length > 0) { %>
-                    <% categories.forEach(function(category) { %>
-                      <li>
-                        <a class="dropdown-item" href="/products/category/<%= category.categoryID %>"
-                          ><%= category.name %></a
-                        >
-                      </li>
-                    <% }); %>
-                  <% } %>
-                </ul>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-light" href="#contact">Contact Us</a>
-              </li>
+                <% }); %>
+              <% } %>
             </ul>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-light" href="#contact">Contact</a>
+          </li>
+        </ul>
 
-            <!-- Section 2: Search Bar -->
-            <div class="search-section">
-              <form class="d-flex" role="search">
-                <input
-                  id="search"
-                  class="form-control me-2"
-                  type="search"
-                  placeholder="Search..."
-                />
-                <button
-                  id="SearchButton"
-                  class="btn"
-                  type="submit"
-                >
-                  <i class="fa-solid fa-magnifying-glass"></i>
-                </button>
-              </form>
-            </div>
+        <!-- Search Form -->
+        <form class="d-flex ms-auto me-3" role="search">
+          <input
+            id="search"
+            class="form-control me-2"
+            type="search"
+            placeholder="Search products..."
+          />
+          <button
+            id="SearchButton"
+            class="btn btn-outline-secondary"
+            type="submit"
+          >
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </form>
 
-            <!-- Section 3: Icons -->
-            <ul class="navbar-nav icons-section">
-              <li class="nav-item">
-                <button id="themeToggle" class="btn btn-link nav-link text-light">
-                  <i class="fas fa-moon"></i>
-                </button>
-              </li>
-              <li class="nav-item dropdown">
-                <a
-                  class="nav-link text-light"
-                  href="#"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  <i class="fa-regular fa-user"></i>
-                </a>
-                <ul class="dropdown-menu">
-                  <% if (user != null) {%>
-                  <% if (user.role === 'admin') { %>
-                    <li><a class="dropdown-item" href="/admin/profile">Profile</a></li>
-                  <% } else { %>
-                    <li><a class="dropdown-item" href="/api/user/profile">Profile</a></li>
-                  <% } %>
-                  <li><a class="dropdown-item" href="/api/user/logout">Log Out</a></li>
-                  <% }else{%>
-                  <li><a class="dropdown-item" href="/login">Login</a></li>
-                  <li><a class="dropdown-item" href="/signup">Signup</a></li>
-                  <% }%>
-                </ul>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-light position-relative"
-                  href="/cart/view"
-                >
-                  <i class="fa-solid fa-cart-shopping"></i>
-                  <span class="CartCounter"></span>
-                </a>
-              </li>
+        <!-- Icons Section -->
+        <ul class="navbar-nav d-flex align-items-center">
+          <!-- Theme Toggle -->
+          <li class="nav-item">
+            <button id="themeToggle" class="btn btn-link nav-link text-light p-2">
+              <i class="fas fa-moon"></i>
+            </button>
+          </li>
+          
+          <!-- User Profile Dropdown -->
+          <li class="nav-item dropdown">
+            <a
+              class="nav-link text-light dropdown-toggle-split"
+              href="#"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i class="fa-regular fa-user"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <% if (user != null) {%>
+                <% if (user.role === 'admin') { %>
+                  <li><a class="dropdown-item" href="/admin/profile">
+                    <i class="fa-regular fa-user me-2"></i>Profile
+                  </a></li>
+                <% } else { %>
+                  <li><a class="dropdown-item" href="/api/user/profile">
+                    <i class="fa-regular fa-user me-2"></i>Profile
+                  </a></li>
+                <% } %>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/api/user/logout">
+                  <i class="fa-solid fa-sign-out-alt me-2"></i>Log Out
+                </a></li>
+              <% }else{%>
+                <li><a class="dropdown-item" href="/login">
+                  <i class="fa-solid fa-sign-in-alt me-2"></i>Login
+                </a></li>
+                <li><a class="dropdown-item" href="/signup">
+                  <i class="fa-solid fa-user-plus me-2"></i>Sign Up
+                </a></li>
+              <% }%>
             </ul>
-          </div>
-        </div>
-      </nav>
-    </header>
+          </li>
+          
+          <!-- Shopping Cart -->
+          <li class="nav-item">
+            <a
+              class="nav-link text-light position-relative"
+              href="/cart/view"
+            >
+              <i class="fa-solid fa-cart-shopping"></i>
+              <span class="CartCounter"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>
   </body>
 </html>

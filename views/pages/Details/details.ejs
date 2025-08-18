@@ -20,13 +20,21 @@
             <div class="product-actions">
                 <div class="quantity-selector">
                     <span class="quantity-label">Quantity:</span>
-                    <input type="number" 
-                           class="quantity-input" 
-                           value="1" 
-                           min="1" 
-                           max="<%= product.stockQuantity %>"
-                           data-stock="<%= product.stockQuantity %>"
-                           id="quantity">
+                    <div class="quantity-controls">
+                        <button type="button" class="btn btn-outline-secondary quantity-btn" data-action="decrease">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" 
+                               class="quantity-input" 
+                               value="1" 
+                               min="1" 
+                               max="<%= product.stockQuantity %>"
+                               data-stock="<%= product.stockQuantity %>"
+                               id="quantity">
+                        <button type="button" class="btn btn-outline-secondary quantity-btn" data-action="increase">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="action-buttons">

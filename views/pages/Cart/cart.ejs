@@ -22,14 +22,22 @@
                         </div>
                         <span class="itemprice">$<%= item.price.toFixed(2) %></span>
                         <div class="quantity">
-                            <input type="number" 
-                                   class="qty" 
-                                   value="<%= item.quantity %>" 
-                                   data-price="<%= item.price %>" 
-                                   data-product-id="<%= item.product._id %>"
-                                   data-stock="<%= item.product.stockQuantity %>"
-                                   min="1" 
-                                   max="<%= item.product.stockQuantity %>" />
+                            <div class="quantity-controls">
+                                <button type="button" class="btn btn-outline-secondary quantity-btn" data-action="decrease" data-product-id="<%= item.product._id %>">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" 
+                                       class="qty" 
+                                       value="<%= item.quantity %>" 
+                                       data-price="<%= item.price %>" 
+                                       data-product-id="<%= item.product._id %>"
+                                       data-stock="<%= item.product.stockQuantity %>"
+                                       min="1" 
+                                       max="<%= item.product.stockQuantity %>" />
+                                <button type="button" class="btn btn-outline-secondary quantity-btn" data-action="increase" data-product-id="<%= item.product._id %>">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
                         </div>
                         <span class="totalprice">$<%= item.total.toFixed(2) %></span>
                         <button class="remove" 

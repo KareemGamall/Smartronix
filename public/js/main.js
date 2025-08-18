@@ -281,14 +281,42 @@ class UIManager {
 
     static setInputLoadingState(input, isLoading) {
         if (!input) return;
-
+        
         if (isLoading) {
             input.dataset.originalValue = input.value;
             input.disabled = true;
-            input.classList.add('loading');
+            input.style.opacity = '0.6';
         } else {
             input.disabled = false;
-            input.classList.remove('loading');
+            input.style.opacity = '1';
+            delete input.dataset.originalValue;
+        }
+    }
+
+    static updateItemTotal(productId, total) {
+        const itemElement = document.querySelector(`.cartitem .qty[data-product-id="${productId}"]`)?.closest('.cartitem');
+        if (itemElement) {
+            const totalElement = itemElement.querySelector('.totalprice');
+            if (totalElement) {
+                totalElement.textContent = `$${parseFloat(total).toFixed(2)}`;
+            }
+        }
+    }
+
+    static updateCartTotals(cart) {
+        if (!cart) return;
+        
+        // Update subtotal
+        const subtotalElement = document.querySelector('.subtotal');
+        if (subtotalElement) {
+            subtotalElement.textContent = `$${parseFloat(cart.totalAmount).toFixed(2)}`;
+        }
+        
+        // Update grand total
+        const grandTotalElement = document.querySelector('.grandtotal');
+        if (grandTotalElement) {
+            const grandTotal = parseFloat(cart.totalAmount) + 50; // 50 is delivery fee
+            grandTotalElement.textContent = `$${grandTotal.toFixed(2)}`;
         }
     }
 
@@ -461,6 +489,45 @@ class CartManager {
             UIManager.showMessage('Error removing item', 'danger');
         }
     }
+
+    static async updateCartItemQuantity(productId, quantity) {
+        const operationId = Utils.generateOperationId('update', productId);
+        if (appState.isOperationPending(operationId)) {
+            console.log('Update cart item quantity operation already in progress');
+            return;
+        }
+
+        const input = document.querySelector(`input[data-product-id="${productId}"]`);
+        UIManager.setInputLoadingState(input, true);
+
+        const operation = this.performUpdateCartItemQuantity(productId, quantity, input);
+        appState.setOperationPending(operationId, operation);
+    }
+
+    static async performUpdateCartItemQuantity(productId, quantity, input) {
+        try {
+            const result = await CartAPI.updateCart(productId, quantity);
+            if (result.success && result.data.cart) {
+                const updatedItem = result.data.cart.items.find(item => 
+                    item.product._id === productId || item.product === productId
+                );
+                if (updatedItem) {
+                    UIManager.updateItemTotal(productId, updatedItem.total);
+                    UIManager.updateCartTotals(result.data.cart);
+                    await this.updateCartCounter();
+                }
+            } else {
+                throw new Error(result.error || 'Failed to update cart item quantity');
+            }
+        } catch (error) {
+            UIManager.showMessage(error.message || 'Error updating cart item quantity', 'danger');
+            if (input && input.dataset.originalValue) {
+                input.value = input.dataset.originalValue;
+            }
+        } finally {
+            UIManager.setInputLoadingState(input, false);
+        }
+    }
 }
 
 // Product Details Manager
@@ -630,6 +697,59 @@ class EventHandlers {
             await CartManager.addToCart(productId, quantity);
         });
     }
+
+    static initializeQuantityControls() {
+        // Handle quantity button clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.quantity-btn')) {
+                const button = e.target.closest('.quantity-btn');
+                const action = button.dataset.action;
+                const productId = button.dataset.productId;
+                const input = button.parentElement.querySelector('.quantity-input, .qty');
+                
+                if (!input) return;
+                
+                let currentValue = parseInt(input.value) || 1;
+                const min = parseInt(input.min) || 1;
+                const max = parseInt(input.max) || 99;
+                
+                if (action === 'increase') {
+                    currentValue = Math.min(currentValue + 1, max);
+                } else if (action === 'decrease') {
+                    currentValue = Math.max(currentValue - 1, min);
+                }
+                
+                input.value = currentValue;
+                
+                // If this is in the cart, update the cart
+                if (input.classList.contains('qty') && productId) {
+                    CartManager.updateCartItemQuantity(productId, currentValue);
+                }
+                
+                // Trigger input event for any listeners
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        });
+        
+        // Handle quantity input changes
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('quantity-input') || e.target.classList.contains('qty')) {
+                const input = e.target;
+                let value = parseInt(input.value) || 1;
+                const min = parseInt(input.min) || 1;
+                const max = parseInt(input.max) || 99;
+                
+                // Ensure value is within bounds
+                value = Math.max(min, Math.min(value, max));
+                input.value = value;
+                
+                // If this is in the cart, update the cart
+                if (input.classList.contains('qty') && input.dataset.productId) {
+                    CartManager.updateCartItemQuantity(input.dataset.productId, value);
+                }
+            }
+        });
+    }
 }
 
 // Bootstrap Manager
@@ -706,9 +826,9 @@ class ECommerceApp {
         EventHandlers.initializeCartButtons();
         EventHandlers.initializeQuantityInputs();
         EventHandlers.initializeProductDetailsAddToCart();
+        EventHandlers.initializeQuantityControls(); // Initialize quantity controls
 
-        // Initialize product details
-        ProductDetailsManager.initializeQuantityControls();
+        // Initialize product details tabs
         ProductDetailsManager.initializeTabs();
 
         // Subscribe to cart state changes

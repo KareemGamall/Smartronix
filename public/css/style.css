@@ -149,6 +149,8 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    /* Offset for fixed navbar */
+    padding-top: 75px;
 }
 
 /* Simple scrollbar */
@@ -172,20 +174,39 @@ body {
     background: var(--white) !important;
     border-bottom: 1px solid var(--border-color);
     padding: 1rem 0;
-    position: sticky;
+    position: fixed;
     top: 0;
+    width: 100%;
     z-index: 1030;
     height: 75px;
     box-shadow: var(--shadow-sm);
 }
 
-/* Three-section navbar layout */
-.navbar-collapse {
-    display: flex !important;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+/* (Reverted) Do not override the navbar background; use existing theme variables */
+.right-section .form-control {
+    max-width: 260px;
 }
+
+@media (max-width: 991.98px) {
+  .right-section {
+    width: 100%;
+    margin-top: 0.5rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .right-section .search-section {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  .right-section .icons-section {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+}
+
+/* Three-section navbar layout */
+/* Keep default Bootstrap collapse behavior for desktop; we'll customize only mobile */
 
 /* Section 1: Navigation Links */
 .navigation-section {
@@ -657,6 +678,8 @@ h2 {
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
 }
 
+/* (moved to responsive breakpoints) */
+
 .category-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
@@ -730,7 +753,7 @@ h2 {
 }
 
 .new-arrivals .card-img-top {
-    height: 220px;
+    height: 300px;
     object-fit: contain;
     padding: 2rem;
     background: var(--background);
@@ -854,7 +877,6 @@ h2 {
     background: var(--teal);
     color: var(--white);
     text-decoration: none;
-    transform: translateY(-1px);
 }
 
 .btn-primary {
@@ -1323,6 +1345,12 @@ h2 {
         grid-template-columns: repeat(2, 1fr);
         gap: 1.5rem;
     }
+
+    /* Make category cards narrower on tablet/mobile */
+    .categories .category-card {
+        width: 80%;
+        margin: 0 auto;
+    }
     
     .category-card img {
         height: 180px;
@@ -1339,7 +1367,7 @@ h2 {
     }
     
     .new-arrivals .card-img-top {
-        height: 180px;
+        height: 300px; /* increase product image height on mobile/tablet */
         padding: 1.5rem;
     }
     
@@ -1361,7 +1389,9 @@ h2 {
     }
     
     .hero-image img {
-        height: 40vh;
+        height: auto;
+        max-height: 50vh;
+        object-fit: contain;
     }
     
     .product-title {
@@ -1396,6 +1426,12 @@ h2 {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
+
+    /* Make category cards slightly narrower on small phones */
+    .categories .category-card {
+        width: 80%;
+        margin: 0 auto;
+    }
     
     .category-card img {
         height: 160px;
@@ -1422,7 +1458,7 @@ h2 {
     }
     
     .new-arrivals .card-img-top {
-        height: 160px;
+        height: 280px; /* taller product images on small phones */
         padding: 1rem;
     }
     
@@ -1546,74 +1582,300 @@ h2 {
 /* ===============================================
    MOBILE NAVBAR OVERRIDES
    =============================================== */
-@media (max-width: 991.98px) { /* Corresponds to Bootstrap's 'lg' breakpoint */
-  
-  /* Make navbar-collapse a horizontal flex container */
+@media (max-width: 991.98px) {
+  /* Let Bootstrap stack collapsed menu items vertically */
   .navbar-collapse {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 0;
-    padding: 0 0.5rem;
+    padding: 0.75rem 0;
+    margin-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* Mobile menu background: match navbar color and avoid flicker */
+  .navbar .collapsing,
+  .navbar .collapse.show {
+    background-color: var(--white);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+  }
+
+  [data-theme="dark"] .navbar .collapsing,
+  [data-theme="dark"] .navbar .collapse.show {
     background-color: var(--card-bg);
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.40);
+  }
+
+  .navbar .collapse.show .nav-link {
+    color: inherit !important;
+  }
+
+  /* Navigation links mobile spacing */
+  .navbar-nav {
+    gap: 0;
+  }
+
+  .navbar-nav .nav-item {
+    margin: 0;
+  }
+
+  .navbar-nav .nav-link {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.9rem;
+  }
+
+  /* Collapsed menu: center items in a single column (only main links, not icons list) */
+  .navbar .collapsing .navbar-nav:not(.d-flex),
+  .navbar .collapse.show .navbar-nav:not(.d-flex) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+  .navbar .collapsing .navbar-nav:not(.d-flex) .nav-item,
+  .navbar .collapse.show .navbar-nav:not(.d-flex) .nav-item {
     width: 100%;
   }
+  .navbar .collapsing .navbar-nav:not(.d-flex) .nav-link,
+  .navbar .collapse.show .navbar-nav:not(.d-flex) .nav-link {
+    display: block;
+    width: 100%;
+    text-align: center;
+    white-space: normal;
+  }
 
-  /* Section 1: Navigation Links - horizontal */
-  .navigation-section {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: flex-start;
-    align-items: center;
+  /* Search form mobile styling */
+  .navbar form[role="search"] {
+    margin: 0.75rem 0.75rem 0.5rem 0.75rem !important;
     gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-    border: none;
-    border-bottom: none;
-    text-align: left;
   }
 
-  .navigation-section .nav-item {
-    margin: 0 0.25rem;
-  }
-
-  /* Section 2: Search Bar - center */
-  .search-section {
-    display: flex !important;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
+  .navbar .form-control {
     max-width: 100%;
     flex: 1;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
   }
 
-  .search-section form {
-    width: 100%;
-    max-width: 180px;
+  .navbar .btn {
+    padding: 0.5rem 0.75rem;
+    min-width: 40px;
   }
 
-  /* Section 3: Icons - horizontal, right-aligned */
-  .icons-section {
-    display: flex !important;
+  /* Icons section mobile */
+  .navbar-nav.d-flex {
     flex-direction: row !important;
-    justify-content: flex-end;
+    justify-content: space-around;
     align-items: center;
-    gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-    border: none;
-    border-top: none;
+    margin: 0.5rem 0.75rem 0 0.75rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border-color);
+    gap: 1rem;
   }
 
-  /* Remove extra padding/borders from dropdowns */
-  .navbar-nav .dropdown-menu {
-    text-align: center;
-    background-color: var(--background);
-    border-color: var(--border-color);
-    box-shadow: none;
+  .navbar-nav.d-flex .nav-item {
+    flex: 0 0 auto;
   }
+
+  .navbar-nav.d-flex .nav-link {
+    padding: 0.5rem !important;
+    text-align: center;
+    min-width: 40px;
+  }
+
+  /* Dropdown positioning for mobile */
+  .navbar-nav .dropdown-menu {
+    position: static;
+    right: auto;
+    left: auto;
+    transform: none;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    background: var(--white);
+    border-radius: var(--radius-sm);
+    margin: 0.25rem 0.75rem;
+    width: calc(100% - 1.5rem);
+  }
+
+  [data-theme="dark"] .navbar-nav .dropdown-menu {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Match dropdowns to navbar background on mobile */
+  .navbar .collapse.show .dropdown-menu {
+    background-color: var(--white);
+    border-color: var(--border-color);
+  }
+
+  [data-theme="dark"] .navbar .collapse.show .dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+  }
+
+  .navbar .collapse.show .dropdown-item {
+    color: inherit;
+  }
+
+  .navbar .collapse.show .dropdown-item:hover {
+    background: rgba(0,0,0,0.04);
+    color: inherit;
+  }
+}
+
+/* ===============================================
+   QUANTITY CONTROLS
+   =============================================== */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: 150px;
+}
+
+.quantity-controls .quantity-btn {
+    padding: 0.375rem 0.5rem;
+    border: 1px solid var(--border-color);
+    background: var(--white);
+    color: var(--text-primary);
+    transition: var(--transition);
+    min-width: 36px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-controls .quantity-btn:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.quantity-controls .quantity-btn:active {
+    transform: scale(0.95);
+}
+
+.quantity-controls .quantity-input,
+.quantity-controls .qty {
+    width: 60px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.375rem 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    background: var(--white);
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.quantity-controls .quantity-input:focus,
+.quantity-controls .qty:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(74, 124, 122, 0.1);
+}
+
+.quantity-controls .quantity-input::-webkit-inner-spin-button,
+.quantity-controls .quantity-input::-webkit-outer-spin-button,
+.quantity-controls .qty::-webkit-inner-spin-button,
+.quantity-controls .qty::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantity-controls .quantity-input[type=number],
+.quantity-controls .qty[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Dark mode quantity controls */
+[data-theme="dark"] .quantity-controls .quantity-btn {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .quantity-controls .quantity-btn:hover {
+    background: var(--hover-bg);
+    border-color: var(--light-sage);
+    color: var(--light-sage);
+}
+
+[data-theme="dark"] .quantity-controls .quantity-input,
+[data-theme="dark"] .quantity-controls .qty {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Responsive quantity controls */
+@media (max-width: 768px) {
+    .quantity-controls {
+        max-width: 120px;
+        gap: 0.2rem;
+    }
+    
+    .quantity-controls .quantity-btn {
+        padding: 0.25rem 0.4rem;
+        min-width: 32px;
+        height: 34px;
+        font-size: 0.8rem;
+    }
+    
+    .quantity-controls .quantity-input,
+    .quantity-controls .qty {
+        width: 50px;
+        padding: 0.25rem 0.4rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Center quantity section in cart page on mobile */
+    .cartpage .cartitem .quantity {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+    
+    .cartpage .cartitem .quantity .quantity-controls {
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .quantity-controls {
+        max-width: 100px;
+        gap: 0.15rem;
+    }
+    
+    .quantity-controls .quantity-btn {
+        padding: 0.2rem 0.3rem;
+        min-width: 28px;
+        height: 30px;
+        font-size: 0.75rem;
+    }
+    
+    .quantity-controls .quantity-input,
+    .quantity-controls .qty {
+        width: 45px;
+        padding: 0.2rem 0.3rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Center quantity section in cart page on small mobile */
+    .cartpage .cartitem .quantity {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+    
+    .cartpage .cartitem .quantity .quantity-controls {
+        margin: 0 auto;
+    }
 }
