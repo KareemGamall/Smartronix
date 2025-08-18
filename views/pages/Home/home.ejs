@@ -80,6 +80,64 @@
             </div>
         </div>
     </section>
+
+    <section class="best-sellers">
+        <h2>Best Sellers</h2>
+        <div class="container">
+            <div class="row">
+                <% if (bestSellers && bestSellers.length > 0) { %>
+                    <% bestSellers.forEach(product => { %>
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <a href="/products/details/<%= product._id %>" class="text-decoration-none">
+                                    <img src="<%= product.imageUrl %>" 
+                                         class="card-img-top" 
+                                         alt="<%= product.name %>">
+                                </a>
+                                
+                                <div class="card-body">
+                                    <a href="/products/details/<%= product._id %>" class="text-decoration-none text-dark">
+                                        <h5 class="card-title"><%= product.name %></h5>
+                                    </a>
+                                    <p class="card-text text-muted">
+                                        <%= product.description.substring(0, 100) %>...
+                                    </p>
+                                    <p class="card-text">
+                                        <strong>Price: $<%= product.price %></strong>
+                                    </p>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            Category: <%= product.category ? product.category.name : 'Uncategorized' %>
+                                        </small>
+                                    </p>
+                                    <p class="card-text">
+                                        <small class="text-success">
+                                            <i class="fas fa-star"></i> Popular Choice
+                                        </small>
+                                    </p>
+                                </div>
+                                
+                                <div class="card-footer bg-white">
+                                    <button class="btn btn-primary btn-block add-to-cart-btn" 
+                                            data-product-id="<%= product._id %>"
+                                            data-bs-toggle="tooltip"
+                                            title="Add to Cart">
+                                        <i class="fas fa-cart-plus"></i> Add To Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <div class="col-12">
+                        <div class="alert alert-info" role="alert">
+                            No best sellers available.
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </section>
 </main>
 
 <%- include('../../partials/footer') %> 

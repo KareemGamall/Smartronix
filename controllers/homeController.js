@@ -6,7 +6,8 @@ const mongoose = require("mongoose");
 const LIMITS = {
   FEATURED_PRODUCTS: 8,
   MAIN_CATEGORIES: 6,
-  NEW_ARRIVALS: 8
+  NEW_ARRIVALS: 3,
+  BEST_SELLERS: 3
 };
 
 // Cache duration in milliseconds (5 minutes)
@@ -52,7 +53,8 @@ const logger = {
 const getFallbackData = () => ({
   featuredProducts: [],
   mainCategories: [],
-  newArrivals: []
+  newArrivals: [],
+  bestSellers: []
 });
 
 exports.getHomePage = async (req, res) => {
@@ -80,7 +82,7 @@ exports.getHomePage = async (req, res) => {
     logger.debug('Fetching fresh home page data');
 
     // Fetch data with individual error handling for each query
-    const [featuredProducts, mainCategories, newArrivals] = await Promise.allSettled([
+    const [featuredProducts, mainCategories, newArrivals, bestSellers] = await Promise.allSettled([
       Product.find({ featured: true })
         .populate("category")
         .limit(LIMITS.FEATURED_PRODUCTS)
@@ -93,13 +95,46 @@ exports.getHomePage = async (req, res) => {
         .sort({ createdAt: -1 })
         .limit(LIMITS.NEW_ARRIVALS)
         .lean(),
+      Product.aggregate([
+        {
+          $lookup: {
+            from: 'orderitems',
+            localField: '_id',
+            foreignField: 'product',
+            as: 'orderItems'
+          }
+        },
+        {
+          $addFields: {
+            totalOrders: { $size: '$orderItems' }
+          }
+        },
+        {
+          $sort: { totalOrders: -1 }
+        },
+        {
+          $limit: LIMITS.BEST_SELLERS
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'category',
+            foreignField: '_id',
+            as: 'category'
+          }
+        },
+        {
+          $unwind: '$category'
+        }
+      ])
     ]);
 
     // Handle individual query results
     const homeData = {
       featuredProducts: featuredProducts.status === 'fulfilled' ? featuredProducts.value : [],
       mainCategories: mainCategories.status === 'fulfilled' ? mainCategories.value : [],
-      newArrivals: newArrivals.status === 'fulfilled' ? newArrivals.value : []
+      newArrivals: newArrivals.status === 'fulfilled' ? newArrivals.value : [],
+      bestSellers: bestSellers.status === 'fulfilled' ? bestSellers.value : []
     };
 
     // Log any failed queries
@@ -112,11 +147,15 @@ exports.getHomePage = async (req, res) => {
     if (newArrivals.status === 'rejected') {
       logger.error('Failed to fetch new arrivals', newArrivals.reason);
     }
+    if (bestSellers.status === 'rejected') {
+      logger.error('Failed to fetch best sellers', bestSellers.reason);
+    }
 
     logger.debug('Home page data fetched', {
       featuredProductsCount: homeData.featuredProducts.length,
       categoriesCount: homeData.mainCategories.length,
-      newArrivalsCount: homeData.newArrivals.length
+      newArrivalsCount: homeData.newArrivals.length,
+      bestSellersCount: homeData.bestSellers.length
     });
 
     // Cache the successful data

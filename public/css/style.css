@@ -98,6 +98,10 @@
     color: var(--light-sage);
 }
 
+[data-theme="dark"] .best-sellers h2 {
+    color: var(--light-sage);
+}
+
 [data-theme="dark"] .new-arrivals .card {
     background: #2d2d2d;
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
@@ -738,6 +742,15 @@ h2 {
     letter-spacing: 0.5px;
 }
 
+.best-sellers h2 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--dark-teal);
+    text-align: center;
+    margin-bottom: 3rem;
+    letter-spacing: 0.5px;
+}
+
 .new-arrivals .card {
     background: white;
     border: none;
@@ -1238,6 +1251,78 @@ h2 {
 }
 
 /* ===============================================
+   PRODUCT DETAILS ACTION BUTTONS
+   =============================================== */
+.product-actions .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 1.5rem 0;
+}
+
+.product-actions .action-buttons .btn {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: var(--transition);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.product-actions .action-buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.product-actions .action-buttons .add-to-cart-btn {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.product-actions .action-buttons .add-to-cart-btn:hover {
+    background: var(--teal);
+    border-color: var(--teal);
+}
+
+.product-actions .action-buttons .buy-now-btn {
+    background: var(--success);
+    border-color: var(--success);
+}
+
+.product-actions .action-buttons .buy-now-btn:hover {
+    background: #218838;
+    border-color: #218838;
+}
+
+/* Dark mode action buttons */
+[data-theme="dark"] .product-actions .action-buttons .btn {
+    color: var(--white);
+}
+
+/* Responsive action buttons */
+@media (max-width: 768px) {
+    .product-actions .action-buttons {
+        gap: 0.75rem;
+    }
+    
+    .product-actions .action-buttons .btn {
+        padding: 0.875rem 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-actions .action-buttons {
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .product-actions .action-buttons .btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* ===============================================
    FOOTER
    =============================================== */
 .custom-footer {
@@ -1309,6 +1394,17 @@ h2 {
     .main-image {
         height: 300px;
     }
+    
+    /* Best Sellers responsive */
+    .best-sellers h2 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .best-sellers .card-img-top {
+        height: 300px;
+        padding: 1.5rem;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1371,6 +1467,53 @@ h2 {
         padding: 1.5rem;
     }
     
+    /* Best Sellers responsive */
+    .best-sellers {
+        padding: 3rem 0;
+    }
+    
+    .best-sellers h2 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .best-sellers .card-img-top {
+        height: 300px;
+        padding: 1.5rem;
+    }
+    
+    /* Product Details responsive */
+    .product-container {
+        padding: 1rem;
+    }
+    
+    .product-title {
+        font-size: 1.5rem;
+    }
+    
+    .product-price {
+        font-size: 1.4rem;
+    }
+    
+    .quantity-selector {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .action-buttons {
+        gap: 0.5rem;
+    }
+    
+    .action-buttons .btn {
+        padding: 0.875rem 1.25rem;
+    }
+    
+    /* Cart page responsive */
+    .cartpage {
+        padding: 1rem 0.5rem;
+    }
+    
     .cartitem {
         grid-template-columns: 1fr;
         gap: 0.5rem;
@@ -1388,18 +1531,23 @@ h2 {
         display: inline-block;
     }
     
+    /* Center quantity section in cart page on mobile */
+    .cartpage .cartitem .quantity {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+    
+    .cartpage .cartitem .quantity .quantity-controls {
+        margin: 0 auto;
+    }
+    
     .hero-image img {
         height: auto;
         max-height: 50vh;
         object-fit: contain;
-    }
-    
-    .product-title {
-        font-size: 1.5rem;
-    }
-    
-    .product-price {
-        font-size: 1.4rem;
     }
 }
 
@@ -1470,6 +1618,29 @@ h2 {
         font-size: 0.85rem;
     }
     
+    /* Best Sellers responsive */
+    .best-sellers {
+        padding: 2rem 0;
+    }
+    
+    .best-sellers h2 {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .best-sellers .card-img-top {
+        height: 280px;
+        padding: 1rem;
+    }
+    
+    .best-sellers .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .best-sellers .card-text {
+        font-size: 0.85rem;
+    }
+    
     .navbar-brand {
         font-size: 1.3rem;
     }
@@ -1481,6 +1652,32 @@ h2 {
     
     .product-container {
         padding: 1rem;
+    }
+    
+    .product-title {
+        font-size: 1.3rem;
+    }
+    
+    .product-price {
+        font-size: 1.2rem;
+    }
+    
+    .quantity-selector {
+        gap: 0.5rem;
+    }
+    
+    .quantity-label {
+        font-size: 0.9rem;
+    }
+    
+    .action-buttons {
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .action-buttons .btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
     }
     
     .remove {
@@ -1505,6 +1702,46 @@ h2 {
     /* Product card width adjustment for mobile */
     .product-card {
         width: 95%;
+    }
+    
+    /* Cart page mobile */
+    .cartpage {
+        padding: 0.5rem;
+    }
+    
+    .cartitem {
+        padding: 0.75rem 0;
+    }
+    
+    .productincart img {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .itemdetails p {
+        font-size: 0.9rem;
+    }
+    
+    .itemsize {
+        font-size: 0.75rem;
+    }
+    
+    .cart-total {
+        padding: 1rem;
+        margin: 1rem auto 0;
+    }
+    
+    .cart-total h3 {
+        font-size: 1.2rem;
+    }
+    
+    .cart-total p {
+        font-size: 0.9rem;
+    }
+    
+    .checkout-btn {
+        padding: 0.6rem;
+        font-size: 0.9rem;
     }
 }
 
@@ -1877,5 +2114,531 @@ h2 {
     
     .cartpage .cartitem .quantity .quantity-controls {
         margin: 0 auto;
+    }
+}
+
+/* ===============================================
+   CHECKOUT PAGE RESPONSIVE
+   =============================================== */
+@media (max-width: 768px) {
+    .checkout-container {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .order-summary,
+    .delivery-info {
+        width: 100%;
+    }
+    
+    .order-table {
+        font-size: 0.9rem;
+    }
+    
+    .table-header,
+    .table-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .col-product {
+        order: 1;
+    }
+    
+    .col-quantity {
+        order: 2;
+    }
+    
+    .col-price {
+        order: 3;
+    }
+    
+    .col-total {
+        order: 4;
+    }
+    
+    .product-info {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .product-info img {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .form-section {
+        padding: 1rem;
+    }
+    
+    .form-section h4 {
+        font-size: 1.1rem;
+    }
+    
+    .choice-group {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .choice-option {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .checkout-container {
+        gap: 1.5rem;
+    }
+    
+    .order-table {
+        font-size: 0.8rem;
+    }
+    
+    .table-header,
+    .table-row {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .product-info img {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .form-section {
+        padding: 0.75rem;
+    }
+    
+    .form-section h4 {
+        font-size: 1rem;
+    }
+    
+    .form-control {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* ===============================================
+   PRODUCTS PAGE RESPONSIVE
+   =============================================== */
+@media (max-width: 768px) {
+    .container.mt-4 {
+        padding: 0 1rem;
+    }
+    
+    .container.mt-4 h1 {
+        font-size: 1.75rem;
+        text-align: center;
+    }
+    
+    .col-md-4 {
+        margin-bottom: 1.5rem;
+    }
+    
+    .card {
+        height: auto;
+        min-height: 400px;
+    }
+    
+    .card-img-top {
+        height: 250px;
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .card-text {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container.mt-4 {
+        padding: 0 0.5rem;
+    }
+    
+    .container.mt-4 h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .col-md-4 {
+        margin-bottom: 1rem;
+    }
+    
+    .card {
+        min-height: 350px;
+    }
+    
+    .card-img-top {
+        height: 200px;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    .card-text {
+        font-size: 0.8rem;
+    }
+    
+    .btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* ===============================================
+   ADMIN DASHBOARD RESPONSIVE
+   =============================================== */
+@media (max-width: 768px) {
+    .stats-card {
+        margin-bottom: 1rem;
+    }
+    
+    .col-xl-3 {
+        margin-bottom: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .text-xs {
+        font-size: 0.7rem;
+    }
+    
+    .h5 {
+        font-size: 1.1rem;
+    }
+    
+    .fa-2x {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-card {
+        margin-bottom: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .text-xs {
+        font-size: 0.65rem;
+    }
+    
+    .h5 {
+        font-size: 1rem;
+    }
+    
+    .fa-2x {
+        font-size: 1.25rem;
+    }
+}
+
+/* ===============================================
+   AUTHENTICATION PAGES RESPONSIVE
+   =============================================== */
+@media (max-width: 768px) {
+    .login-container,
+    .signup-container {
+        margin: 20px auto;
+        padding: 15px;
+    }
+    
+    .card-header {
+        padding: 25px 15px;
+    }
+    
+    .card-header h3 {
+        font-size: 1.75rem;
+    }
+    
+    .card-body {
+        padding: 30px 20px;
+    }
+    
+    .form-control {
+        padding: 10px 14px;
+        font-size: 15px;
+    }
+    
+    .btn {
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-container,
+    .signup-container {
+        margin: 15px auto;
+        padding: 10px;
+    }
+    
+    .card-header {
+        padding: 20px 10px;
+    }
+    
+    .card-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 25px 15px;
+    }
+    
+    .form-control {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    
+    .btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+    }
+}
+
+/* ===============================================
+   ALERT RESPONSIVE
+   =============================================== */
+@media (max-width: 768px) {
+    .alert {
+        min-width: 280px;
+        max-width: 95%;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .alert {
+        min-width: 250px;
+        max-width: 98%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* ===============================================
+   FOOTER RESPONSIVE
+   =============================================== */
+@media (max-width: 768px) {
+    .custom-footer {
+        padding: 1.5rem 0 1rem;
+        text-align: center;
+    }
+    
+    .custom-footer h5 {
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .custom-footer ul li {
+        margin-bottom: 0.4rem;
+    }
+    
+    .custom-footer a {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .custom-footer {
+        padding: 1rem 0 0.75rem;
+    }
+    
+    .custom-footer h5 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .custom-footer ul li {
+        margin-bottom: 0.3rem;
+    }
+    
+    .custom-footer a {
+        font-size: 0.85rem;
+    }
+}
+
+/* ===============================================
+   UTILITY CLASSES RESPONSIVE
+   =============================================== */
+@media (max-width: 768px) {
+    .mb-3 {
+        margin-bottom: 0.75rem;
+    }
+    
+    .mt-3 {
+        margin-top: 0.75rem;
+    }
+    
+    .p-3 {
+        padding: 0.75rem;
+    }
+    
+    .text-center {
+        text-align: center !important;
+    }
+    
+    .text-left {
+        text-align: left !important;
+    }
+    
+    .text-right {
+        text-align: right !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .mb-3 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .mt-3 {
+        margin-top: 0.5rem;
+    }
+    
+    .p-3 {
+        padding: 0.5rem;
+    }
+}
+
+/* ===============================================
+   FORM CONTROLS RESPONSIVE
+   =============================================== */
+@media (max-width: 768px) {
+    .form-control {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-select {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-control {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.85rem;
+    }
+    
+    .form-select {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.85rem;
+    }
+    
+    .form-label {
+        font-size: 0.85rem;
+        margin-bottom: 0.4rem;
+    }
+}
+
+/* ===============================================
+   BUTTON RESPONSIVE
+   =============================================== */
+@media (max-width: 768px) {
+    .btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        border-radius: var(--radius-sm);
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-lg {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-sm {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* ===============================================
+   CARD RESPONSIVE
+   =============================================== */
+@media (max-width: 768px) {
+    .card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    .card-footer {
+        padding: 1rem 1.25rem;
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .card-text {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .card {
+        border-radius: var(--radius-sm);
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .card-footer {
+        padding: 0.75rem 1rem;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    .card-text {
+        font-size: 0.85rem;
     }
 }

@@ -698,6 +698,37 @@ class EventHandlers {
         });
     }
 
+    static initializeBuyNowButton() {
+        const buyNowBtn = document.querySelector('.buy-now-btn');
+        if (!buyNowBtn) return;
+
+        buyNowBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const productId = this.dataset.productId;
+            const quantityInput = document.querySelector('#quantity');
+            const quantity = quantityInput ? Utils.parseInteger(quantityInput.value, 1) : 1;
+
+            // Show loading state
+            UIManager.setLoadingState(this, true, 'Processing...');
+
+            try {
+                // Add item to cart first
+                const result = await CartAPI.addToCart(productId, quantity);
+                
+                if (result.success) {
+                    // Redirect to checkout page
+                    window.location.href = '/order/checkout';
+                } else {
+                    throw new Error(result.error || 'Failed to process buy now request');
+                }
+            } catch (error) {
+                UIManager.showMessage(error.message || 'Error processing buy now request', 'danger');
+                UIManager.setLoadingState(this, false);
+            }
+        });
+    }
+
     static initializeQuantityControls() {
         // Handle quantity button clicks
         document.addEventListener('click', function(e) {
@@ -826,6 +857,7 @@ class ECommerceApp {
         EventHandlers.initializeCartButtons();
         EventHandlers.initializeQuantityInputs();
         EventHandlers.initializeProductDetailsAddToCart();
+        EventHandlers.initializeBuyNowButton(); // Initialize buy now button
         EventHandlers.initializeQuantityControls(); // Initialize quantity controls
 
         // Initialize product details tabs
