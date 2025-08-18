@@ -327,9 +327,9 @@ window.saveUser = async function() {
             return;
         }
         
-        const phoneRegex = /^(10|11|12|15)\d{8}$/;
+        const phoneRegex = /^01\d{9}$/;
         if (!phoneRegex.test(phoneNumber)) {
-            AdminUtils.showAlert('Please enter a valid Egyptian phone number', 'warning');
+            AdminUtils.showAlert('Please enter a valid Egyptian phone number (11 digits starting with 01)', 'warning');
             return;
         }
         

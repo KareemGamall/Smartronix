@@ -40,10 +40,10 @@ const OrderSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator: function (v) {
-          return /^\d{10}$/.test(v);
+          return /^01\d{9}$/.test(v);
         },
         message: (props) =>
-          `${props.value} is not a valid phone number! Must be exactly 10 digits.`,
+          `${props.value} is not a valid phone number! Must be exactly 11 digits starting with 01.`,
       },
     },
     PaymentMethod: {

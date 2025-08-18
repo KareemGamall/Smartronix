@@ -592,6 +592,16 @@ body {
     display: none !important;
 }
 
+/* Cart icon highlight effect */
+.fa-cart-shopping {
+    transition: all 0.3s ease;
+}
+
+.fa-cart-shopping.highlight {
+    transform: scale(1.2);
+    color: var(--success) !important;
+}
+
 .CartCounter:not(:empty) {
     display: block !important;
 }

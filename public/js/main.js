@@ -398,6 +398,10 @@ class CartManager {
             
             if (result.success) {
                 UIManager.showMessage('Item added to cart successfully!', 'success');
+                
+                // Scroll to cart icon after successful addition
+                this.scrollToCartIcon();
+                
                 // Prefer using the server's updated cart payload directly to avoid any race
                 const updatedCart = (result.data && (result.data.data || result.data.cart)) || null;
                 if (updatedCart) {
@@ -487,6 +491,35 @@ class CartManager {
         } catch (error) {
             console.error('Error:', error);
             UIManager.showMessage('Error removing item', 'danger');
+        }
+    }
+
+    // Scroll to cart icon smoothly with highlight effect
+    static scrollToCartIcon() {
+        const cartIcon = document.querySelector('.fa-cart-shopping');
+        if (cartIcon) {
+            // Scroll to cart icon with offset for better visibility
+            cartIcon.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center',
+                inline: 'nearest'
+            });
+            
+            // Add small offset for better positioning
+            setTimeout(() => {
+                window.scrollBy({
+                    top: -50,
+                    behavior: 'smooth'
+                });
+            }, 500);
+            
+            // Add highlight effect using CSS class
+            cartIcon.classList.add('highlight');
+            
+            // Remove highlight after animation
+            setTimeout(() => {
+                cartIcon.classList.remove('highlight');
+            }, 1000);
         }
     }
 
@@ -623,25 +656,11 @@ class EventHandlers {
                 // More explicit logging for easier debugging
                 console.log('Adding to cart:', 'productId=', productId, 'quantity=', quantity);
                 
-                // Scroll to nav bar
-                const navBar = document.querySelector('nav');
-                if (navBar) {
-                    navBar.scrollIntoView({ behavior: 'smooth' });
-                }
-                
-                // Open mobile menu if on mobile device
-                const isMobile = window.innerWidth <= 992;
-                if (isMobile) {
-                    const navbarToggler = document.querySelector('.navbar-toggler');
-                    const navbarContent = document.getElementById('navbarContent');
-                    
-                    if (navbarToggler && navbarContent && !navbarContent.classList.contains('show')) {
-                        // Trigger the mobile menu to open
-                        navbarToggler.click();
-                    }
-                }
-                
+                // Scroll to cart icon after adding to cart
                 await CartManager.addToCart(productId, quantity);
+                
+                // Scroll to cart icon with highlight effect
+                CartManager.scrollToCartIcon();
             });
         });
     }
@@ -717,8 +736,13 @@ class EventHandlers {
                 const result = await CartAPI.addToCart(productId, quantity);
                 
                 if (result.success) {
-                    // Redirect to checkout page
-                    window.location.href = '/order/checkout';
+                    // Scroll to cart icon briefly before redirecting
+                    CartManager.scrollToCartIcon();
+                    
+                    // Small delay to show the scroll effect before redirecting
+                    setTimeout(() => {
+                        window.location.href = '/order/checkout';
+                    }, 800);
                 } else {
                     throw new Error(result.error || 'Failed to process buy now request');
                 }
