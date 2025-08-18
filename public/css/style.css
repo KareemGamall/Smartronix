@@ -292,6 +292,27 @@ body {
     opacity: 0.3;
 }
 
+/* Dark mode dropdown text colors - ensure light text in dark mode */
+[data-theme="dark"] .navbar-nav .dropdown-menu {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .navbar-nav .dropdown-menu .dropdown-item {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .navbar-nav .dropdown-menu .dropdown-item:hover {
+    background: var(--hover-bg);
+    color: var(--light-sage);
+}
+
+[data-theme="dark"] .navbar-nav .dropdown-menu .dropdown-item:active {
+    background: var(--light-sage);
+    color: var(--white);
+}
+
 /* ===============================================
    MINIMALIST DROPDOWN STYLES
    =============================================== */
@@ -387,6 +408,21 @@ body {
         border-color: var(--border-color);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
+    
+    /* Dark mode mobile dropdown text colors */
+    [data-theme="dark"] .navbar-nav .dropdown-menu .dropdown-item {
+        color: var(--text-secondary);
+    }
+    
+    [data-theme="dark"] .navbar-nav .dropdown-menu .dropdown-item:hover {
+        background: var(--hover-bg);
+        color: var(--light-sage);
+    }
+    
+    [data-theme="dark"] .navbar-nav .dropdown-menu .dropdown-item:active {
+        background: var(--light-sage);
+        color: var(--white);
+    }
 }
 
 /* Additional viewport safety for dropdowns */
@@ -402,6 +438,21 @@ body {
     .dropdown-item {
         padding: 0.5rem 1rem;
         font-size: 0.85rem;
+    }
+    
+    /* Dark mode small screen dropdown text colors */
+    [data-theme="dark"] .navbar-nav .dropdown-menu .dropdown-item {
+        color: var(--text-secondary);
+    }
+    
+    [data-theme="dark"] .navbar-nav .dropdown-menu .dropdown-item:hover {
+        background: var(--hover-bg);
+        color: var(--light-sage);
+    }
+    
+    [data-theme="dark"] .navbar-nav .dropdown-menu .dropdown-item:active {
+        background: var(--light-sage);
+        color: var(--white);
     }
 }
 
@@ -1941,24 +1992,39 @@ h2 {
   }
 
   /* Match dropdowns to navbar background on mobile */
-  .navbar .collapse.show .dropdown-menu {
+.navbar .collapse.show .dropdown-menu {
     background-color: var(--white);
     border-color: var(--border-color);
-  }
+}
 
-  [data-theme="dark"] .navbar .collapse.show .dropdown-menu {
+[data-theme="dark"] .navbar .collapse.show .dropdown-menu {
     background-color: var(--card-bg);
     border-color: var(--border-color);
-  }
+}
 
-  .navbar .collapse.show .dropdown-item {
+.navbar .collapse.show .dropdown-item {
     color: inherit;
-  }
+}
 
-  .navbar .collapse.show .dropdown-item:hover {
+.navbar .collapse.show .dropdown-item:hover {
     background: rgba(0,0,0,0.04);
     color: inherit;
-  }
+}
+
+/* Dark mode mobile navbar dropdown text colors */
+[data-theme="dark"] .navbar .collapse.show .dropdown-menu .dropdown-item {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .navbar .collapse.show .dropdown-menu .dropdown-item:hover {
+    background: var(--hover-bg);
+    color: var(--light-sage);
+}
+
+[data-theme="dark"] .navbar .collapse.show .dropdown-menu .dropdown-item:active {
+    background: var(--light-sage);
+    color: var(--white);
+}
 }
 
 /* ===============================================
