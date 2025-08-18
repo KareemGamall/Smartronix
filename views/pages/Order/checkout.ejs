@@ -108,10 +108,10 @@
                                        class="form-control" 
                                        id="contactPhone" 
                                        name="contactPhone" 
-                                       placeholder="Enter 10-digit phone number"
-                                       maxlength="10">
+                                       placeholder="Enter 11-digit phone number"
+                                       maxlength="11">
                                 <div class="error-message" id="phoneError">
-                                    Phone number must be exactly 10 digits.
+                                    Phone number must be exactly 11 digits.
                                 </div>
                             </div>
                             
@@ -636,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const phoneChoice = document.querySelector('input[name="phoneChoice"]:checked').value;
         
         if (phoneChoice === 'new') {
-            const phonePattern = /^[0-9]{10}$/;
+            const phonePattern = /^[0-9]{11}$/;
             if (phonePattern.test(phoneInput.value.replace(/\D/g, ''))) {
                 phoneInput.classList.remove('error');
                 phoneError.classList.remove('show');
@@ -681,11 +681,11 @@ document.addEventListener('DOMContentLoaded', function() {
     phoneInput.addEventListener('input', validatePhone);
 });
 
-// Format phone number input to allow only 10 digits
+// Format phone number input to allow only 11 digits
 document.getElementById('contactPhone').addEventListener('input', function (e) {
     let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 10) {
-        value = value.slice(0, 10);
+    if (value.length > 11) {
+        value = value.slice(0, 11);
     }
     e.target.value = value;
 });

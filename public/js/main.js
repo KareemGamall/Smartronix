@@ -172,8 +172,13 @@ const debounceManager = new DebounceManager();
 class CartAPI {
     static async makeRequest(url, options = {}) {
         const defaultOptions = {
+            // Always send cookies on same-origin so session-based cart works
+            credentials: 'same-origin',
+            // Prevent any caching of API responses used for UI state
+            cache: 'no-store',
             headers: {
                 'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
             }
         };
 
@@ -192,7 +197,9 @@ class CartAPI {
     }
 
     static async getCart() {
-        return await this.makeRequest('/cart');
+        // Add cache buster to always get fresh cart payload
+        const ts = Date.now();
+        return await this.makeRequest(`/cart?ts=${ts}`, { method: 'GET' });
     }
 
     static async addToCart(productId, quantity) {
@@ -363,7 +370,13 @@ class CartManager {
             
             if (result.success) {
                 UIManager.showMessage('Item added to cart successfully!', 'success');
-                await this.updateCartCounter();
+                // Prefer using the server's updated cart payload directly to avoid any race
+                const updatedCart = (result.data && (result.data.data || result.data.cart)) || null;
+                if (updatedCart) {
+                    appState.update('cart', updatedCart);
+                } else {
+                    await this.updateCartCounter();
+                }
             } else {
                 throw new Error(result.error);
             }
@@ -527,6 +540,10 @@ class EventHandlers {
         const addToCartButtons = document.querySelectorAll(CONSTANTS.SELECTORS.ADD_TO_CART_BTN);
         
         addToCartButtons.forEach(button => {
+            // Prevent duplicate bindings across re-renders or repeated initializations
+            if (button.dataset.bound === '1') return;
+            button.dataset.bound = '1';
+
             button.addEventListener('click', async function(e) {
                 e.preventDefault();
                 const productId = this.dataset.productId;
@@ -536,7 +553,8 @@ class EventHandlers {
                 const quantity = quantityInput ? 
                     Utils.parseInteger(quantityInput.value, 1) : 1;
                 
-                console.log('Adding to cart:', { productId, quantity }); // Debug log
+                // More explicit logging for easier debugging
+                console.log('Adding to cart:', 'productId=', productId, 'quantity=', quantity);
                 
                 // Scroll to nav bar
                 const navBar = document.querySelector('nav');

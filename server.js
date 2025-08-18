@@ -224,9 +224,17 @@ app.use('/api/user', userRoutes);
 app.use('/admin', adminRoutes);
 
 app.get("/login" , (req,res)=>{
+    // Preserve intended destination for both login and subsequent signup
+    if (req.query.redirect) {
+        req.session.returnTo = req.query.redirect;
+    }
     res.render("pages/login", { layout: false })
 })
 app.get("/signup" , (req,res)=>{
+    // If redirect is passed directly to signup, store it as well
+    if (req.query.redirect) {
+        req.session.returnTo = req.query.redirect;
+    }
     res.render("pages/signup", { layout: false })
 })
 

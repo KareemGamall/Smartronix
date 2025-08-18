@@ -28,10 +28,10 @@ const UserSchema = new mongoose.Schema(
       type: String,
       validate: {
         validator: function(v) {
-          // Allows empty string or a 10-digit number
-          return v === null || v === '' || /^\d{10}$/.test(v);
+          // Allows empty string or an 11-digit number
+          return v === null || v === '' || /^\d{11}$/.test(v);
         },
-        message: props => `${props.value} is not a valid phone number! Must be 10 digits.`
+        message: props => `${props.value} is not a valid phone number! Must be 11 digits.`
       },
       trim: true
     },

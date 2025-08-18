@@ -250,7 +250,9 @@
                                     </label>
                                     <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber"
                                            value="<%= user.phoneNumber || '' %>"
-                                           placeholder="Enter your phone number">
+                                           placeholder="Enter 11-digit phone number"
+                                           maxlength="11">
+                                    <small class="form-text text-muted">Must be exactly 11 digits</small>
                                 </div>
                             </div>
                             <div class="col-md-6">

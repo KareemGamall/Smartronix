@@ -58,6 +58,14 @@ class CartHelper {
         return cartById;
       }
     }
+    // Fallback: try cookie-stored cartId if present
+    if (req.cookies && req.cookies.cartId) {
+      const cartByCookie = await Cart.findById(req.cookies.cartId);
+      if (cartByCookie) {
+        logger.debug('Found cart by cookie cartId', { cartId: cartByCookie._id });
+        return cartByCookie;
+      }
+    }
     
     // Finally try to find cart by session ID (fallback)
     if (req.session.id) {
@@ -104,6 +112,17 @@ class CartHelper {
           itemsCount: cartById.items.length 
         });
         return cartById;
+      }
+    }
+    // Fallback: try cookie-stored cartId if present
+    if (req.cookies && req.cookies.cartId) {
+      const cartByCookie = await Cart.findById(req.cookies.cartId).populate('items.product');
+      if (cartByCookie) {
+        logger.debug('Found cart by cookie cartId with products', { 
+          cartId: cartByCookie._id,
+          itemsCount: cartByCookie.items.length 
+        });
+        return cartByCookie;
       }
     }
     
@@ -252,14 +271,23 @@ const cartController = {
                 await cart.save();
                 logger.debug('New cart saved', { cartId: cart._id });
                 
-                // Then save session with cart ID
+                // Then save session with cart ID and wait for completion
                 req.session.cartId = cart._id.toString();
-                req.session.save((err) => {
-                    if (err) {
-                        logger.error('Error saving session', err);
-                    } else {
+                // Also set a cookie as a backup reference
+                res.cookie('cartId', req.session.cartId, {
+                    httpOnly: true,
+                    sameSite: 'lax',
+                    maxAge: 24 * 60 * 60 * 1000
+                });
+                await new Promise((resolve, reject) => {
+                    req.session.save((err) => {
+                        if (err) {
+                            logger.error('Error saving session', err);
+                            return reject(err);
+                        }
                         logger.debug('Session saved with cart ID', { cartId: cart._id });
-                    }
+                        resolve();
+                    });
                 });
             }
 
@@ -357,6 +385,13 @@ const cartController = {
 
             const response = createCartResponse(cart);
             logger.debug('Sending cart response with items:', response.items?.length || 0);
+            // Make sure this response is never cached by the browser/CDN
+            res.set({
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                'Surrogate-Control': 'no-store'
+            });
             res.json(response);
 
         } catch (error) {

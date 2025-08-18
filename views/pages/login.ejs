@@ -378,12 +378,20 @@
         this.querySelector("i").classList.toggle("bi-eye");
         this.querySelector("i").classList.toggle("bi-eye-slash");
       });
-
+      
       document.addEventListener("DOMContentLoaded", function () {
         const urlParams = new URLSearchParams(window.location.search);
         const redirectUrl = urlParams.get('redirect');
 
         const loginForm = document.querySelector("#loginForm");
+
+        // Ensure the Sign up link preserves the redirect parameter
+        if (redirectUrl) {
+          const signupAnchor = document.querySelector('.signup-link a');
+          if (signupAnchor) {
+            signupAnchor.href = `/signup?redirect=${encodeURIComponent(redirectUrl)}`;
+          }
+        }
 
         if (!loginForm) {
             console.error("Login form not found!");

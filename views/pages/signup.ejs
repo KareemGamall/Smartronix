@@ -405,12 +405,25 @@
                     class="form-control"
                     id="phoneNumber"
                     name="phoneNumber"
-                    placeholder="1012345678"
+                    placeholder="01123456789"
                   />
                 </div>
                 <small class="form-text">
-                  Enter a valid Egyptian phone number (e.g., 1012345678)
+                  Enter a valid Egyptian phone number (11 digits, e.g., 01123456789)
                 </small>
+              </div>
+
+              <div class="mb-3">
+                <label for="address" class="form-label">
+                  <i class="bi bi-geo-alt me-2"></i>Address
+                </label>
+                <textarea
+                  class="form-control"
+                  id="address"
+                  name="address"
+                  rows="3"
+                  placeholder="Street, City, Governorate"
+                ></textarea>
               </div>
 
               <div class="mb-3">
@@ -486,6 +499,12 @@
         `;
         alertContainer.innerHTML = "";
         alertContainer.appendChild(alertDiv);
+        // Scroll to the alert so the user sees the result immediately
+        try {
+          alertDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (e) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       }
 
       // Password strength checker
@@ -591,9 +610,9 @@
           return;
         }
 
-        if (!phoneNumber.match(/^(10|11|12|15)\d{8}$/)) {
+        if (!phoneNumber.match(/^\d{11}$/)) {
           showAlert(
-            "Please enter a valid Egyptian phone number starting with +20 followed by 10, 11, 12, or 15"
+            "Please enter a valid 11-digit phone number"
           );
           return;
         }
@@ -616,7 +635,7 @@
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ name, email, password, phoneNumber }),
+            body: JSON.stringify({ name, email, password, phoneNumber, address: document.querySelector('#address').value }),
             credentials: "include"
           });
           const data = await response.json();

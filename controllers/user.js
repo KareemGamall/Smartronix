@@ -11,7 +11,7 @@ const VALIDATION = {
   MAX_PASSWORD_LENGTH: 128,
   MIN_NAME_LENGTH: 2,
   MAX_NAME_LENGTH: 50,
-  PHONE_LENGTH: 10
+  PHONE_LENGTH: 11
 };
 
 // Password strength requirements
@@ -20,8 +20,8 @@ const VALIDATION = {
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Phone validation regex
-const PHONE_REGEX = /^\d{10}$/;
+// Phone validation regex (require exactly 11 digits)
+const PHONE_REGEX = /^\d{11}$/;
 
 // Simple logger
 const logger = {
@@ -163,7 +163,7 @@ exports.signup = async (req, res) => {
       hasPhone: !!req.body.phoneNumber
     });
 
-    const { name, email, password, phoneNumber } = req.body;
+    const { name, email, password, phoneNumber, address } = req.body;
 
     // Validate input
     let validatedName, validatedEmail, validatedPassword, validatedPhone;
@@ -207,6 +207,7 @@ exports.signup = async (req, res) => {
       email: validatedEmail,
       password: hashedPassword,
       phoneNumber: validatedPhone,
+      address: address ? address.trim() : undefined,
     });
 
     logger.info('User created successfully', { userId: user._id, email: validatedEmail });
@@ -225,8 +226,8 @@ exports.signup = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
     });
 
-    // Check if there's a return URL stored in session
-    const returnTo = req.session.returnTo;
+    // After signup, if there is a pending destination (e.g., /order/checkout), honor it
+    const returnTo = req.session.returnTo || req.query.redirect;
     if (returnTo) {
       delete req.session.returnTo;
       logger.debug('Redirecting after signup', { returnTo });
@@ -236,9 +237,7 @@ exports.signup = async (req, res) => {
       });
     }
 
-    res.status(201).json({
-      message: "User registered successfully",
-    });
+    res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     logger.error('Signup error', error);
     
@@ -313,6 +312,24 @@ exports.login = async (req, res) => {
 
     await mergeCarts(user._id, req.session.id);
 
+    // Ensure session points to the user's active cart after merge
+    try {
+      const userCartAfterMerge = await Cart.findOne({ user: user._id });
+      if (userCartAfterMerge) {
+        req.session.cartId = userCartAfterMerge._id.toString();
+        res.cookie('cartId', req.session.cartId, {
+          httpOnly: true,
+          sameSite: 'lax',
+          maxAge: 24 * 60 * 60 * 1000
+        });
+        await new Promise((resolve, reject) => {
+          req.session.save((err) => (err ? reject(err) : resolve()));
+        });
+      }
+    } catch (e) {
+      logger.error('Failed to align session/cart cookie after merge', e);
+    }
+
     logger.debug('Cookie set, checking if it was set properly');
     logger.debug('Response headers:', res.getHeaders());
 
@@ -372,10 +389,10 @@ exports.updateProfile = async (req, res) => {
 
     // Check if phone number is provided and validate it
     if (phoneNumber && phoneNumber.trim()) {
-      const phoneRegex = /^\d{10}$/;
+      const phoneRegex = /^\d{11}$/;
       if (!phoneRegex.test(phoneNumber.trim())) {
         return res.status(400).json({
-          error: "Please enter a valid 10-digit phone number.",
+          error: "Please enter a valid 11-digit phone number.",
         });
       }
 

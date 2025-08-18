@@ -9,14 +9,14 @@ const formatPrice = (price) => Number(price.toFixed(2));
 
 const validatePhoneNumber = (phone) => {
   const phoneNumber = phone ? phone.replace(/\D/g, "") : '';
-  return phoneNumber.length === 10;
+  return phoneNumber.length === 11;
 };
 
 // Validation constants
 const VALIDATION = {
   MIN_ADDRESS_LENGTH: 10,
   MAX_ADDRESS_LENGTH: 200,
-  PHONE_LENGTH: 10
+  PHONE_LENGTH: 11
 };
 
 // Simple logger
@@ -37,31 +37,47 @@ const logger = {
 const orderController = {
   async checkout(req, res) {
     try {
-      // Find cart using improved logic
+      // Find cart using robust logic
       let cart = null;
       
-      // First try to find cart by user ID (for logged in users)
+      // 1) User cart
       if (req.user?._id) {
         cart = await Cart.findOne({ user: req.user._id }).populate("items.product");
-        if (cart) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Found user cart with ID:', cart._id);
-          }
+        if (cart && process.env.NODE_ENV === 'development') {
+          console.log('Found user cart with ID:', cart._id);
         }
       }
       
-      // If no user cart found, try session cart
-      if (!cart) {
-        cart = await Cart.findOne({ 
-          sessionId: req.session.id,
-          user: null 
-        }).populate("items.product");
-        
-        if (cart) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Found session cart with ID:', cart._id);
-          }
+      // 2) session.cartId explicit
+      if (!cart && req.session.cartId) {
+        cart = await Cart.findById(req.session.cartId).populate("items.product");
+        if (cart && process.env.NODE_ENV === 'development') {
+          console.log('Found cart by session.cartId:', cart._id);
         }
+      }
+      
+      // 3) cookie cartId fallback
+      if (!cart && req.cookies && req.cookies.cartId) {
+        cart = await Cart.findById(req.cookies.cartId).populate("items.product");
+        if (cart && process.env.NODE_ENV === 'development') {
+          console.log('Found cart by cookie cartId:', cart._id);
+        }
+      }
+      
+      // 4) SessionId anonymous cart
+      if (!cart) {
+        cart = await Cart.findOne({ sessionId: req.session.id, user: null }).populate("items.product");
+        if (cart && process.env.NODE_ENV === 'development') {
+          console.log('Found session cart with ID:', cart._id);
+        }
+      }
+      
+      // If logged in and we found an anonymous cart, convert it to user cart on the fly
+      if (req.user?._id && cart && !cart.user) {
+        cart.user = req.user._id;
+        cart.sessionId = null;
+        await cart.save();
+        req.session.cartId = cart._id.toString();
       }
 
       if (!cart || cart.items.length === 0) {
@@ -109,40 +125,32 @@ const orderController = {
 
       logger.debug('Order form data', { addressChoice, phoneChoice });
 
-      // Use the exact same cart finding logic as checkout method
+      // Use robust cart finding logic with session
       let cart = null;
       
-      // First try to find cart by user ID (for logged in users)
       if (req.user?._id) {
         cart = await Cart.findOne({ user: req.user._id }).populate("items.product").session(session);
-        if (cart) {
-          logger.debug('Found user cart', { cartId: cart._id });
-        } else {
-          logger.debug('No user cart found', { userId: req.user._id });
-        }
+        if (cart) logger.debug('Found user cart', { cartId: cart._id });
       }
-      
-      // Then try to find cart by session cartId (most reliable)
       if (!cart && req.session.cartId) {
         cart = await Cart.findById(req.session.cartId).populate("items.product").session(session);
-        if (cart) {
-          logger.debug('Found cart by session cartId', { cartId: cart._id });
-        } else {
-          logger.debug('No cart found by session cartId', { cartId: req.session.cartId });
-        }
+        if (cart) logger.debug('Found cart by session cartId', { cartId: cart._id });
+      }
+      if (!cart && req.cookies && req.cookies.cartId) {
+        cart = await Cart.findById(req.cookies.cartId).populate("items.product").session(session);
+        if (cart) logger.debug('Found cart by cookie cartId', { cartId: cart._id });
+      }
+      if (!cart) {
+        cart = await Cart.findOne({ sessionId: req.session.id }).populate("items.product").session(session);
+        if (cart) logger.debug('Found session cart', { cartId: cart._id });
       }
       
-      // Finally try to find cart by session ID (fallback)
-      if (!cart && req.session.id) {
-        cart = await Cart.findOne({ 
-          sessionId: req.session.id
-        }).populate("items.product").session(session);
-        
-        if (cart) {
-          logger.debug('Found session cart', { cartId: cart._id });
-        } else {
-          logger.debug('No session cart found', { sessionId: req.session.id });
-        }
+      // If logged in and anonymous cart found, attach it to the user now
+      if (req.user?._id && cart && !cart.user) {
+        cart.user = req.user._id;
+        cart.sessionId = null;
+        await cart.save({ session });
+        req.session.cartId = cart._id.toString();
       }
 
       logger.debug('Cart lookup result', {
