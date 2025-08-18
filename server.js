@@ -57,16 +57,21 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Add headers for iframe compatibility
+// Add headers for iframe compatibility - MUST BE BEFORE SESSION MIDDLEWARE
 app.use((req, res, next) => {
-    // Remove X-Frame-Options to allow iframe embedding
+    // Remove any existing X-Frame-Options header
     res.removeHeader('X-Frame-Options');
     
-    // Set Content-Security-Policy to allow iframe embedding
+    // Set permissive Content-Security-Policy for iframe embedding
     res.setHeader('Content-Security-Policy', "frame-ancestors 'self' *");
     
-    // Allow iframe embedding
+    // Set X-Frame-Options to allow all embedding
     res.setHeader('X-Frame-Options', 'ALLOWALL');
+    
+    // Additional headers for iframe compatibility
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     
     next();
 });
@@ -76,18 +81,20 @@ app.use((req, res, next) => {
     // Check if request is coming from an iframe
     const isIframe = req.headers['sec-fetch-dest'] === 'iframe' || 
                      req.headers['x-frame-options'] === 'iframe' ||
-                     req.query.iframe === 'true';
+                     req.query.iframe === 'true' ||
+                     req.headers['referer'] && req.headers['referer'].includes('iframe');
     
     // Set iframe-specific headers
     if (isIframe) {
         res.setHeader('X-Frame-Options', 'ALLOWALL');
         res.setHeader('Content-Security-Policy', "frame-ancestors *");
+        res.setHeader('Access-Control-Allow-Origin', '*');
         
         // Add iframe flag to response locals
         res.locals.isIframe = true;
         
         // Log iframe request for debugging
-        console.log(`[IFRAME] Request from iframe: ${req.path}`);
+        console.log(`[IFRAME] Request from iframe: ${req.path} - Origin: ${req.headers['origin'] || 'unknown'}`);
     }
     
     next();
@@ -351,6 +358,11 @@ app.get("/test-admin-view", (req, res) => {
 
 // Test iframe functionality
 app.get("/test-iframe", (req, res) => {
+    // Ensure iframe headers are set for this test route
+    res.setHeader('X-Frame-Options', 'ALLOWALL');
+    res.setHeader('Content-Security-Policy', "frame-ancestors *");
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    
     res.json({
         success: true,
         message: 'Iframe test successful',
@@ -359,7 +371,12 @@ app.get("/test-iframe", (req, res) => {
         isIframe: req.headers['sec-fetch-dest'] === 'iframe',
         userAgent: req.get('User-Agent'),
         origin: req.get('Origin'),
-        referer: req.get('Referer')
+        referer: req.get('Referer'),
+        iframeHeaders: {
+            xFrameOptions: res.getHeader('X-Frame-Options'),
+            contentSecurityPolicy: res.getHeader('Content-Security-Policy'),
+            accessControlAllowOrigin: res.getHeader('Access-Control-Allow-Origin')
+        }
     });
 });
 
