@@ -50,7 +50,48 @@ app.get('/health', (req, res) => {
 });
 
 // Security middleware
-app.use(cors());
+app.use(cors({
+    origin: true, // Allow all origins
+    credentials: true, // Allow credentials
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Add headers for iframe compatibility
+app.use((req, res, next) => {
+    // Remove X-Frame-Options to allow iframe embedding
+    res.removeHeader('X-Frame-Options');
+    
+    // Set Content-Security-Policy to allow iframe embedding
+    res.setHeader('Content-Security-Policy', "frame-ancestors 'self' *");
+    
+    // Allow iframe embedding
+    res.setHeader('X-Frame-Options', 'ALLOWALL');
+    
+    next();
+});
+
+// Iframe detection and handling middleware
+app.use((req, res, next) => {
+    // Check if request is coming from an iframe
+    const isIframe = req.headers['sec-fetch-dest'] === 'iframe' || 
+                     req.headers['x-frame-options'] === 'iframe' ||
+                     req.query.iframe === 'true';
+    
+    // Set iframe-specific headers
+    if (isIframe) {
+        res.setHeader('X-Frame-Options', 'ALLOWALL');
+        res.setHeader('Content-Security-Policy', "frame-ancestors *");
+        
+        // Add iframe flag to response locals
+        res.locals.isIframe = true;
+        
+        // Log iframe request for debugging
+        console.log(`[IFRAME] Request from iframe: ${req.path}`);
+    }
+    
+    next();
+});
 app.use(compression());
 
 // Body parser
@@ -65,9 +106,10 @@ app.use(session({
     saveUninitialized: true,
     cookie: { 
         secure: config.env === 'production',
-        httpOnly: true,
+        httpOnly: false, // Allow JavaScript access for iframe scenarios
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: 'lax'
+        sameSite: 'none', // Allow cross-site cookies for iframe
+        domain: undefined // Let the browser set the domain
     },
     name: 'smartronics.sid',
     store: MongoStore.create({
@@ -306,6 +348,33 @@ app.get("/test-admin-view", (req, res) => {
         });
     }
 })
+
+// Test iframe functionality
+app.get("/test-iframe", (req, res) => {
+    res.json({
+        success: true,
+        message: 'Iframe test successful',
+        timestamp: new Date().toISOString(),
+        headers: req.headers,
+        isIframe: req.headers['sec-fetch-dest'] === 'iframe',
+        userAgent: req.get('User-Agent'),
+        origin: req.get('Origin'),
+        referer: req.get('Referer')
+    });
+});
+
+// Iframe health check
+app.get("/iframe-health", (req, res) => {
+    res.setHeader('X-Frame-Options', 'ALLOWALL');
+    res.setHeader('Content-Security-Policy', "frame-ancestors *");
+    res.json({
+        status: 'healthy',
+        iframe: 'enabled',
+        timestamp: new Date().toISOString(),
+        cors: 'enabled',
+        session: 'enabled'
+    });
+});
 
 // Error handling
 app.use((err, req, res, next) => {

@@ -2718,3 +2718,55 @@ h2 {
         font-size: 0.85rem;
     }
 }
+
+/* Iframe mode specific styles */
+.iframe-mode {
+    /* Ensure proper sizing in iframe */
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.iframe-mode .navbar {
+    /* Adjust navbar for iframe */
+    position: relative;
+    top: 0;
+}
+
+.iframe-mode .hero-section {
+    /* Adjust hero section for iframe */
+    min-height: 60vh;
+}
+
+.iframe-mode .container {
+    /* Ensure containers fit in iframe */
+    max-width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.iframe-mode .card {
+    /* Adjust cards for iframe */
+    margin-bottom: 1rem;
+}
+
+/* Iframe responsive adjustments */
+@media (max-width: 768px) {
+    .iframe-mode .hero-section {
+        min-height: 50vh;
+    }
+    
+    .iframe-mode .navbar .navbar-collapse {
+        /* Ensure mobile menu works in iframe */
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+    }
+}
+
+@media (max-width: 480px) {
+    .iframe-mode .hero-section {
+        min-height: 40vh;
+  }
+}

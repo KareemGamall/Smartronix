@@ -1,3 +1,43 @@
+// Iframe detection and handling
+(function() {
+    'use strict';
+    
+    // Check if running in iframe
+    const isInIframe = window.self !== window.top;
+    
+    if (isInIframe) {
+        console.log('[IFRAME] Running in iframe mode');
+        
+        // Notify parent window that iframe is ready
+        try {
+            window.parent.postMessage({
+                type: 'iframe-ready',
+                url: window.location.href,
+                timestamp: Date.now()
+            }, '*');
+        } catch (e) {
+            console.log('[IFRAME] Could not notify parent window:', e.message);
+        }
+        
+        // Handle messages from parent window
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'iframe-action') {
+                console.log('[IFRAME] Received action from parent:', event.data);
+                // Handle specific actions from parent if needed
+            }
+        });
+        
+        // Add iframe-specific CSS class
+        document.body.classList.add('iframe-mode');
+        
+        // Adjust viewport for iframe
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }
+    }
+})();
+
 // Constants
 const CONSTANTS = {
     DELIVERY_FEE: 50,
