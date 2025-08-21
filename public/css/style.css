@@ -2982,6 +2982,7 @@ h2 {
 .quantity-controls .quantity-input[type=number],
 .quantity-controls .qty[type=number] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 /* Dark mode quantity controls */
