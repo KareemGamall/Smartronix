@@ -214,6 +214,131 @@ app.post('/admin/clear-categories-cache', (req, res) => {
     }
 });
 
+// Add a route to manually clear home page cache
+app.post('/clear-cache', (req, res) => {
+    try {
+        const homeController = require('./controllers/homeController');
+        if (homeController.cache) {
+            homeController.cache.clear();
+            console.log('Home page cache cleared via root route');
+        }
+        res.json({ success: true, message: 'Home page cache cleared successfully' });
+    } catch (error) {
+        console.error('Error clearing home page cache:', error);
+        res.status(500).json({ success: false, message: 'Error clearing cache' });
+    }
+});
+
+// Debug route to check discount status
+app.get('/debug-discounts', async (req, res) => {
+    try {
+        const Product = require('./models/Products');
+        const products = await Product.find({ hasDiscount: true }).select('name price originalPrice hasDiscount discountPercentage discountEndDate');
+        
+        res.json({
+            timestamp: new Date().toISOString(),
+            totalProducts: await Product.countDocuments(),
+            discountedProducts: products.length,
+            products: products
+        });
+    } catch (error) {
+        console.error('Error in debug route:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Test route to check a specific product
+app.get('/debug-product/:id', async (req, res) => {
+    try {
+        const Product = require('./models/Products');
+        const product = await Product.findById(req.params.id).select('name price originalPrice hasDiscount discountPercentage discountStartDate discountEndDate');
+        
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        
+        res.json({
+            timestamp: new Date().toISOString(),
+            product: product
+        });
+    } catch (error) {
+        console.error('Error in debug product route:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Manual trigger for discount validation
+app.post('/validate-discounts', async (req, res) => {
+    try {
+        const DiscountController = require('./controllers/discountController');
+        await DiscountController.validateDiscounts();
+        
+        // Clear home cache after validation
+        const homeController = require('./controllers/homeController');
+        if (homeController.cache) {
+            homeController.cache.clear();
+        }
+        
+        res.json({ success: true, message: 'Discount validation completed and cache cleared' });
+    } catch (error) {
+        console.error('Error in manual discount validation:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Check what discounts are expired
+app.get('/check-expired-discounts', async (req, res) => {
+    try {
+        const Product = require('./models/Products');
+        const now = new Date();
+        
+        const expiredDiscounts = await Product.find({ 
+            hasDiscount: true,
+            discountEndDate: { $lt: now }
+        }).select('name price originalPrice hasDiscount discountPercentage discountEndDate');
+        
+        const activeDiscounts = await Product.find({ 
+            hasDiscount: true,
+            discountEndDate: { $gte: now }
+        }).select('name price originalPrice hasDiscount discountPercentage discountEndDate');
+        
+        res.json({
+            timestamp: now.toISOString(),
+            expiredCount: expiredDiscounts.length,
+            activeCount: activeDiscounts.length,
+            expired: expiredDiscounts,
+            active: activeDiscounts
+        });
+    } catch (error) {
+        console.error('Error checking expired discounts:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Test route to check a specific product's discount status
+app.get('/test-product/:id', async (req, res) => {
+    try {
+        const Product = require('./models/Products');
+        const product = await Product.findById(req.params.id).select('name price originalPrice hasDiscount discountPercentage discountStartDate discountEndDate');
+        
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        
+        res.json({
+            timestamp: new Date().toISOString(),
+            product: product,
+            hasDiscount: product.hasDiscount,
+            price: product.price,
+            originalPrice: product.originalPrice,
+            discountPercentage: product.discountPercentage
+        });
+    } catch (error) {
+        console.error('Error checking product:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Set path for all routes
 app.use((req, res, next) => {
     res.locals.path = req.path;
@@ -227,6 +352,7 @@ const cartRoutes = require('./routes/cart');
 const orderRoutes = require('./routes/order');
 const userRoutes = require('./routes/user');
 const adminRoutes = require('./routes/admin');
+const discountRoutes = require('./routes/discount');
 
 app.use(async (req, res, next) => {
     try {
@@ -271,6 +397,7 @@ app.use('/cart', cartRoutes);
 app.use('/order', orderRoutes);
 app.use('/api/user', userRoutes);
 app.use('/admin', adminRoutes);
+app.use('/api/discounts', discountRoutes);
 
 app.get("/login" , (req,res)=>{
     // Preserve intended destination for both login and subsequent signup
@@ -412,6 +539,30 @@ app.use((req, res) => {
     });
 });
 
+// Start discount validation cron job
+const DiscountController = require('./controllers/discountController');
+
+// Validate discounts every 5 minutes for better performance
+setInterval(async () => {
+    try {
+        await DiscountController.validateDiscounts();
+    } catch (error) {
+        console.error('Error in discount validation cron job:', error);
+    }
+}, 5 * 60 * 1000); // Every 5 minutes
+
+// Test discount validation on startup
+setTimeout(async () => {
+    try {
+        console.log('🧪 Running initial discount validation test...');
+        await DiscountController.validateDiscounts();
+        console.log('✅ Initial discount validation test completed');
+    } catch (error) {
+        console.error('❌ Initial discount validation test failed:', error);
+    }
+}, 5000); // Run after 5 seconds
+
 app.listen(config.port, () => {
     console.log(`Server is running in ${config.env} mode on port ${config.port}`);
+    console.log('Discount validation cron job started (runs every 5 minutes)');
 });

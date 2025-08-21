@@ -33,10 +33,41 @@ const ProductSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    
+    // Discount fields
+    hasDiscount: {
+      type: Boolean,
+      default: false,
+    },
+    discountPercentage: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    discountStartDate: {
+      type: Date,
+      default: null,
+    },
+    discountEndDate: {
+      type: Date,
+      default: null,
+    },
+    originalPrice: {
+      type: Number,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// Create indexes for better query performance
+ProductSchema.index({ hasDiscount: 1, discountEndDate: 1 });
+ProductSchema.index({ featured: 1 });
+ProductSchema.index({ category: 1 });
+ProductSchema.index({ createdAt: -1 });
+ProductSchema.index({ stockQuantity: 1 });
 
 module.exports = mongoose.model("Product", ProductSchema);

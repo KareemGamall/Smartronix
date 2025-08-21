@@ -176,6 +176,14 @@ class AppState {
 // Global state instance
 const appState = new AppState();
 
+// Subscribe to cart changes to update cart counter
+appState.subscribe('cart', (cartData) => {
+    console.log('Cart state changed, updating counter:', cartData);
+    if (cartData) {
+        UIManager.updateCartCounter(cartData);
+    }
+});
+
 // Debounce Utility
 class DebounceManager {
     constructor() {
@@ -291,19 +299,39 @@ class UIManager {
         const sanitizedMessage = XSSProtection.escapeHtml(message);
         
         const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.className = `alert alert-${type}`;
         alertDiv.innerHTML = `
-            ${sanitizedMessage}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert-icon"></div>
+            <div class="alert-content">${sanitizedMessage}</div>
+            <button type="button" class="btn-close" aria-label="Close"></button>
+            <div class="alert-progress">
+                <div class="alert-progress-bar"></div>
+            </div>
         `;
         
-        document.body.insertBefore(alertDiv, document.body.firstChild);
+        // Add close button functionality
+        const closeBtn = alertDiv.querySelector('.btn-close');
+        closeBtn.addEventListener('click', () => {
+            this.dismissAlert(alertDiv);
+        });
         
+        document.body.appendChild(alertDiv);
+        
+        // Auto-dismiss after timeout
         setTimeout(() => {
             if (alertDiv.parentNode) {
-                alertDiv.remove();
+                this.dismissAlert(alertDiv);
             }
         }, CONSTANTS.AUTO_DISMISS_TIME);
+    }
+
+    static dismissAlert(alertElement) {
+        alertElement.classList.add('fade-out');
+        setTimeout(() => {
+            if (alertElement.parentNode) {
+                alertElement.remove();
+            }
+        }, 300);
     }
 
     static setLoadingState(element, isLoading, loadingText = 'Loading...') {
@@ -362,21 +390,32 @@ class UIManager {
 
     static updateCartCounter(cartData) {
         const counter = document.querySelector(CONSTANTS.SELECTORS.CART_COUNTER);
-        if (!counter) return;
+        if (!counter) {
+            console.log('Cart counter element not found');
+            return;
+        }
 
+        console.log('Updating cart counter with data:', cartData);
+        
         const totalQuantity = cartData.items ? 
             cartData.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+
+        console.log('Total quantity calculated:', totalQuantity);
 
         if (totalQuantity > 0) {
             counter.textContent = totalQuantity.toString();
             counter.style.display = 'block';
+            console.log('Cart counter updated to:', totalQuantity);
         } else {
             counter.textContent = '';
             counter.style.display = 'none';
+            console.log('Cart counter hidden (empty cart)');
         }
     }
 
     static updateCartTotals(cartData) {
+        if (!cartData) return;
+        
         const elements = {
             subtotal: document.querySelector('.subtotal'),
             grandTotal: document.querySelector('.grandtotal')
@@ -390,6 +429,9 @@ class UIManager {
             const grandTotal = cartData.totalAmount + CONSTANTS.DELIVERY_FEE;
             elements.grandTotal.textContent = Utils.formatPrice(grandTotal);
         }
+        
+        // Also update cart counter if not already updated
+        this.updateCartCounter(cartData);
     }
 
     static updateItemTotal(productId, total) {
@@ -411,6 +453,50 @@ class CartManager {
             appState.update('cart', result.data);
         } else {
             console.error('Error updating cart counter:', result.error);
+        }
+    }
+    
+    // Update cart counter without API call (for optimistic updates)
+    static updateCartCounterOptimistic(cartData) {
+        if (cartData) {
+            UIManager.updateCartCounter(cartData);
+        }
+    }
+    
+    // Show empty cart message when all items are removed
+    static showEmptyCartMessage() {
+        const cartContainer = document.querySelector('.cartpage');
+        if (!cartContainer) return;
+        
+        // Hide cart items section
+        const cartItems = cartContainer.querySelector('.cartitems');
+        if (cartItems) {
+            cartItems.style.display = 'none';
+        }
+        
+        // Hide cart total section
+        const cartTotal = cartContainer.querySelector('.cart-total');
+        if (cartTotal) {
+            cartTotal.style.display = 'none';
+        }
+        
+        // Show empty cart message
+        const emptyCart = cartContainer.querySelector('.empty-cart');
+        if (emptyCart) {
+            emptyCart.style.display = 'block';
+        } else {
+            // Create empty cart message if it doesn't exist
+            const emptyCartHTML = `
+                <div class="empty-cart mt-4">
+                    <i class="fa-solid fa-shopping-cart"></i>
+                    <h2>Your cart is empty</h2>
+                    <p>Looks like you haven't added anything yet. Start exploring our amazing products!</p>
+                    <a href="/products" class="continue-shopping">
+                        Continue Shopping
+                    </a>
+                </div>
+            `;
+            cartContainer.innerHTML = emptyCartHTML;
         }
     }
 
@@ -513,6 +599,30 @@ class CartManager {
             return;
         }
 
+        // Optimistic update - immediately update UI
+        const currentCart = appState.get('cart');
+        if (currentCart && currentCart.items) {
+            const updatedItems = currentCart.items.filter(item => 
+                item.product._id !== productId && item.product !== productId
+            );
+            const updatedTotal = updatedItems.reduce((sum, item) => sum + item.total, 0);
+            
+            // Update UI immediately
+            const cartItem = document.querySelector(`[data-product-id="${productId}"]`)?.closest('.cartitem');
+            if (cartItem) {
+                cartItem.style.opacity = '0.5';
+                cartItem.style.pointerEvents = 'none';
+            }
+            
+            // Update cart counter immediately
+            const totalQuantity = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
+            const counter = document.querySelector(CONSTANTS.SELECTORS.CART_COUNTER);
+            if (counter) {
+                counter.textContent = totalQuantity > 0 ? totalQuantity.toString() : '';
+                counter.style.display = totalQuantity > 0 ? 'block' : 'none';
+            }
+        }
+
         const operation = this.performRemoveFromCart(productId);
         appState.setOperationPending(operationId, operation);
         
@@ -522,15 +632,51 @@ class CartManager {
     static async performRemoveFromCart(productId) {
         try {
             const result = await CartAPI.removeFromCart(productId);
-            
-            if (result.success) {
-                window.location.reload();
+            if (result.success && result.data.cart) {
+                const updatedCart = result.data.cart;
+                appState.update('cart', updatedCart);
+                
+                // Remove the item from DOM with animation
+                const cartItem = document.querySelector(`[data-product-id="${productId}"]`)?.closest('.cartitem');
+                if (cartItem) {
+                    cartItem.style.transition = 'all 0.3s ease';
+                    cartItem.style.transform = 'translateX(-100%)';
+                    cartItem.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        cartItem.remove();
+                        
+                        // Check if cart is now empty and show empty cart message
+                        const remainingItems = document.querySelectorAll('.cartitem');
+                        if (remainingItems.length === 0) {
+                            this.showEmptyCartMessage();
+                        }
+                    }, 300);
+                }
+                
+                // Update cart totals
+                UIManager.updateCartTotals(updatedCart);
+                
+                // Update cart counter (already done optimistically, but ensure consistency)
+                UIManager.updateCartCounter(updatedCart);
+                
+                UIManager.showMessage('Item removed from cart successfully!', 'success');
             } else {
-                UIManager.showMessage('Error removing item', 'danger');
+                throw new Error(result.error || 'Failed to remove item from cart');
             }
         } catch (error) {
-            console.error('Error:', error);
-            UIManager.showMessage('Error removing item', 'danger');
+            UIManager.showMessage(error.message || 'Error removing item from cart', 'danger');
+            
+            // Revert optimistic update on error
+            const cartItem = document.querySelector(`[data-product-id="${productId}"]`)?.closest('.cartitem');
+            if (cartItem) {
+                cartItem.style.opacity = '1';
+                cartItem.style.pointerEvents = 'auto';
+                cartItem.style.transform = 'none';
+            }
+            
+            // Refresh cart data to ensure consistency
+            await this.updateCartCounter();
         }
     }
 
@@ -677,17 +823,47 @@ class ProductDetailsManager {
 // Event Handlers Manager
 class EventHandlers {
     static initializeCartButtons() {
-        const addToCartButtons = document.querySelectorAll(CONSTANTS.SELECTORS.ADD_TO_CART_BTN);
+        const addToCartButtons = document.querySelectorAll('.add-to-cart, .add-to-cart-btn');
+        console.log(`Found ${addToCartButtons.length} add to cart buttons`);
         
         addToCartButtons.forEach((button, index) => {
-            // Prevent duplicate bindings across re-renders or repeated initializations
-            if (button.dataset.bound === '1') return;
+            // Check if button is already bound
+            if (button.dataset.bound === '1') {
+                console.log(`Button ${index} already bound, skipping`);
+                return;
+            }
+            
+            console.log(`Binding button ${index} for product ${button.dataset.productId}`);
+            
+            // Mark as bound
             button.dataset.bound = '1';
-
+            
             button.addEventListener('click', async function(e) {
                 e.preventDefault();
                 
+                // Prevent multiple rapid clicks
+                if (this.disabled) {
+                    console.log('Button already processing, ignoring click');
+                    return;
+                }
+                
                 const productId = this.dataset.productId;
+                console.log(`Processing add to cart for product ${productId}`);
+                
+                // Check if this product is already being processed globally
+                if (window.processingProducts && window.processingProducts.has(productId)) {
+                    console.log(`Product ${productId} already being processed, ignoring click`);
+                    return;
+                }
+                
+                // Mark this product as being processed
+                if (!window.processingProducts) window.processingProducts = new Set();
+                window.processingProducts.add(productId);
+                
+                // Disable button to prevent multiple submissions
+                this.disabled = true;
+                const originalText = this.textContent;
+                this.textContent = 'Adding...';
                 
                 // For product cards, always use quantity 1
                 // For product details page, try to get quantity from input
@@ -703,6 +879,15 @@ class EventHandlers {
                     CartManager.scrollToCartIcon();
                 } catch (error) {
                     console.error('Error adding to cart:', error);
+                } finally {
+                    // Remove from processing set
+                    if (window.processingProducts) {
+                        window.processingProducts.delete(productId);
+                    }
+                    
+                    // Re-enable button
+                    this.disabled = false;
+                    this.textContent = originalText;
                 }
             });
         });
@@ -750,19 +935,49 @@ class EventHandlers {
         console.log('Product details add to cart button found:', addToCartBtn);
         if (!addToCartBtn) return;
 
+        // Prevent duplicate binding
+        if (addToCartBtn.dataset.bound === '1') {
+            console.log('Product details add to cart button already bound, skipping');
+            return;
+        }
+
+        // Mark as bound
+        addToCartBtn.dataset.bound = '1';
+
         addToCartBtn.addEventListener('click', async function(e) {
             e.preventDefault();
+            
+            // Prevent multiple rapid clicks
+            if (this.disabled) {
+                console.log('Button already processing, ignoring click');
+                return;
+            }
             
             const productId = this.dataset.productId;
             const quantityInput = document.querySelector('#quantity');
             const quantity = quantityInput ? Utils.parseInteger(quantityInput.value, 1) : 1;
 
+            // Disable button and show loading
+            this.disabled = true;
+            const originalText = this.textContent;
+            this.textContent = 'Adding...';
+
             try {
                 await CartManager.addToCart(productId, quantity);
                 // Scroll to cart icon with highlight effect
                 CartManager.scrollToCartIcon();
+                
+                // Show success message briefly
+                this.textContent = 'Added!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                    this.disabled = false;
+                }, 1000);
             } catch (error) {
                 console.error('Error adding to cart:', error);
+                // Restore button state on error
+                this.textContent = originalText;
+                this.disabled = false;
             }
         });
     }
@@ -770,7 +985,14 @@ class EventHandlers {
     static initializeBuyNowButton() {
         const buyNowBtn = document.querySelector('.buy-now-btn');
         console.log('Buy now button found:', buyNowBtn);
-        if (!buyNowBtn) return;
+        if (!buyNowBtn) {
+            console.log('Buy now button not found, checking for elements with buy-now-btn class...');
+            const allButtons = document.querySelectorAll('button');
+            console.log('All buttons found:', allButtons);
+            const buyNowButtons = document.querySelectorAll('.buy-now-btn');
+            console.log('Buy now buttons found:', buyNowButtons);
+            return;
+        }
 
         buyNowBtn.addEventListener('click', async function(e) {
             e.preventDefault();
@@ -806,6 +1028,10 @@ class EventHandlers {
 
     static initializeQuantityControls() {
         console.log('Initializing quantity controls...');
+        
+        // Initialize cart counter on page load
+        this.initializeCartCounter();
+        
         // Handle quantity button clicks
         document.addEventListener('click', function(e) {
             if (e.target.closest('.quantity-btn')) {
@@ -856,6 +1082,46 @@ class EventHandlers {
                 }
             }
         });
+    }
+
+    static initializeSearch() {
+        const searchForm = document.querySelector('form[role="search"]');
+        const searchInput = document.getElementById('search');
+        
+        if (searchForm && searchInput) {
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const query = searchInput.value.trim();
+                if (query) {
+                    // Sanitize search query
+                    const sanitizedQuery = XSSProtection.escapeHtml(query);
+                    window.location.href = `/products/search?q=${encodeURIComponent(sanitizedQuery)}`;
+                }
+            });
+        }
+    }
+
+    static initializeThemeToggle() {
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle && !themeToggle.dataset.themeInitialized) {
+            themeToggle.dataset.themeInitialized = 'true';
+            ThemeManager.init();
+        }
+    }
+
+    static initializeProfileDropdown() {
+        // Bootstrap dropdowns are auto-initialized, but we can ensure proper positioning
+        BootstrapManager.initializeDropdowns();
+    }
+
+    static initializeBuyNowButtons() {
+        // This method is already handled by initializeBuyNowButton
+        // Keeping it for compatibility
+    }
+    
+    static initializeCartCounter() {
+        // Initialize cart counter on page load
+        CartManager.updateCartCounter();
     }
 }
 
@@ -912,8 +1178,10 @@ class ThemeManager {
         
         const themeIcon = themeToggle.querySelector('i');
         
-        // Check for saved theme preference
+        // Check for saved theme preference, default to light
         const savedTheme = localStorage.getItem('theme') || 'light';
+        console.log('ThemeManager: Initializing with theme:', savedTheme);
+        
         appState.update('ui', { theme: savedTheme });
         document.documentElement.setAttribute('data-theme', savedTheme);
         this.updateThemeIcon(themeIcon, savedTheme);
@@ -922,6 +1190,7 @@ class ThemeManager {
         themeToggle.addEventListener('click', () => {
             const currentTheme = appState.get('ui').theme;
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            console.log('ThemeManager: Switching from', currentTheme, 'to', newTheme);
             
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
@@ -932,8 +1201,29 @@ class ThemeManager {
 
     static updateThemeIcon(icon, theme) {
         if (icon) {
-            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            const newIconClass = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            console.log('ThemeManager: Updating icon to:', newIconClass);
+            icon.className = newIconClass;
         }
+    }
+
+    static forceLightMode() {
+        console.log('ThemeManager: Forcing light mode');
+        localStorage.removeItem('theme');
+        localStorage.setItem('theme', 'light');
+        document.documentElement.setAttribute('data-theme', 'light');
+        appState.update('ui', { theme: 'light' });
+        
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            const themeIcon = themeToggle.querySelector('i');
+            this.updateThemeIcon(themeIcon, 'light');
+        }
+    }
+
+    static resetTheme() {
+        console.log('ThemeManager: Resetting theme to light mode');
+        this.forceLightMode();
     }
 }
 
@@ -974,6 +1264,55 @@ class ECommerceApp {
 
         // Make removeFromCart globally available for legacy compatibility
         window.removeFromCart = (productId) => CartManager.removeFromCart(productId);
+        
+        // Make UIManager globally available for other pages
+        window.UIManager = UIManager;
+        
+        // Make showMessage globally available for testing
+        window.testAlert = (message, type) => UIManager.showMessage(message, type);
+        
+        // Make theme reset globally available for debugging
+        window.resetTheme = () => ThemeManager.resetTheme();
+        window.forceLightMode = () => ThemeManager.forceLightMode();
+        
+        // Add keyboard shortcut to test alerts (Ctrl+Shift+T)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+                e.preventDefault();
+                UIManager.showMessage('Test alert! This is working perfectly.', 'success');
+            }
+        });
+        
+        // Test button removed - alerts are now working properly
+    }
+}
+
+// Initialize discount banner functionality
+function initializeDiscountBanner() {
+    const banner = document.getElementById('discountBanner');
+    if (!banner) return;
+
+    // Add class to body for responsive padding
+    document.body.classList.add('has-discount-banner');
+
+    // Center the text - no animation needed
+    const track = banner.querySelector('.marquee-track');
+    if (track) {
+        track.style.textAlign = 'center';
+        track.style.justifyContent = 'center';
+    }
+}
+
+// Check if banner should be hidden (user previously closed it)
+function checkBannerVisibility() {
+    const banner = document.getElementById('discountBanner');
+    
+    if (banner) {
+        // Banner is present, add class to body for responsive padding
+        document.body.classList.add('has-discount-banner');
+    } else {
+        // No banner, remove class from body
+        document.body.classList.remove('has-discount-banner');
     }
 }
 
@@ -981,71 +1320,88 @@ class ECommerceApp {
 if (window.appInitialized) {
     console.log('App already initialized, skipping...');
 } else {
-    window.appInitialized = true;
+    // Force light mode on first load if no theme is set
+    if (!localStorage.getItem('theme')) {
+        console.log('No theme preference found, forcing light mode');
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
     
-    // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        ECommerceApp.initialize();
-        ThemeManager.init();
+    // Initialize all components only once
+    EventHandlers.initializeCartButtons();
+    EventHandlers.initializeQuantityControls();
+    EventHandlers.initializeSearch();
+    EventHandlers.initializeThemeToggle();
+    EventHandlers.initializeProfileDropdown();
+    EventHandlers.initializeBuyNowButton();
+    
+    // Initialize discount banner
+    initializeDiscountBanner();
+    checkBannerVisibility();
+    
+    // Mark as initialized
+    window.appInitialized = true;
+    console.log('App initialization complete');
+    
+    // Ensure buy now button is initialized after a short delay
+    setTimeout(() => {
+        EventHandlers.initializeBuyNowButton();
+    }, 500);
+}
 
-        // Handle Contact Us link click
-        const contactLink = document.querySelector('a[href="#contact"]');
-        if (contactLink) {
-            contactLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                const footer = document.getElementById('contact');
-                if (footer) {
-                    footer.scrollIntoView({ behavior: 'smooth' });
-                }
-            });
+// Always ensure cart functions are available globally
+window.removeFromCart = (productId) => CartManager.removeFromCart(productId);
+window.CartManager = CartManager;
+window.UIManager = UIManager;
+
+// Initialize when DOM is ready (only once)
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.appInitialized) {
+        console.log('DOM ready, app already initialized');
+        return;
+    }
+    
+    // Small delay to ensure all elements are fully rendered
+    setTimeout(() => {
+        if (!window.appInitialized) {
+            ECommerceApp.initialize();
         }
+    }, 100);
 
-        // Search form handling
-        const searchForm = document.querySelector('form[role="search"]');
-        const searchInput = document.getElementById('search');
-        
-        console.log('Search form found:', searchForm);
-        console.log('Search input found:', searchInput);
-        
-        if (searchForm && searchInput) {
-            searchForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const query = searchInput.value.trim();
-                if (query) {
-                    // Sanitize search query
-                    const sanitizedQuery = XSSProtection.escapeHtml(query);
-                    window.location.href = `/products/search?q=${encodeURIComponent(sanitizedQuery)}`;
-                }
-            });
-            console.log('Search form event listener attached');
-        } else {
-            console.warn('Search form or input not found');
-        }
+    // Handle Contact Us link click
+    const contactLink = document.querySelector('a[href="#contact"]');
+    if (contactLink) {
+        contactLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const footer = document.getElementById('contact');
+            if (footer) {
+                footer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
 
-        // Smooth scroll functionality
-        const scrollLinks = document.querySelectorAll('a[href^="#"]');
-        
-        scrollLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                const targetId = this.getAttribute('href');
-                
-                // If href is just "#", do nothing to allow default anchor behavior
-                // or Bootstrap dropdowns to work.
-                if (targetId === '#') {
-                    return;
-                }
-                
-                e.preventDefault();
-                
-                const targetElement = document.querySelector(targetId);
-                
-                if (targetElement) {
-                    targetElement.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
+    // Smooth scroll functionality
+    const scrollLinks = document.querySelectorAll('a[href^="#"]');
+    
+    scrollLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            
+            // If href is just "#", do nothing to allow default anchor behavior
+            // or Bootstrap dropdowns to work.
+            if (targetId === '#') {
+                return;
+            }
+            
+            e.preventDefault();
+            
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
         });
     });
-}
+});

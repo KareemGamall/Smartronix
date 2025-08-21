@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize modern alert system
     window.alertSystem = new AlertSystem();
+
+    // Initialize dashboard functionality
+    initializeDashboard();
 });
 
 function initializeBootstrapComponents() {
@@ -228,6 +231,184 @@ const AdminUtils = {
 
 // Make AdminUtils globally available
 window.AdminUtils = AdminUtils;
+
+// =====================
+// DASHBOARD FUNCTIONALITY
+// =====================
+
+// Dashboard initialization
+function initializeDashboard() {
+    console.log('Initializing dashboard...');
+    
+    // Only initialize if we're on the dashboard page
+    if (!document.getElementById('dashboard-stats')) {
+        console.log('Not on dashboard page, skipping initialization');
+        return;
+    }
+    
+    console.log('Dashboard page detected, initializing components...');
+    
+    if (document.getElementById('recent-orders-body')) {
+        console.log('Loading recent orders...');
+        loadRecentOrders();
+    }
+    if (document.getElementById('low-stock-alerts')) {
+        console.log('Loading low stock alerts...');
+        loadLowStockAlerts();
+    }
+    
+    // Refresh dashboard data every 30 seconds
+    setInterval(() => {
+        if (document.getElementById('recent-orders-body')) {
+            loadRecentOrders();
+        }
+        if (document.getElementById('low-stock-alerts')) {
+            loadLowStockAlerts();
+        }
+    }, 30000); // 30 seconds
+    
+    console.log('Dashboard initialization complete');
+}
+
+// Load recent orders
+async function loadRecentOrders() {
+    try {
+        console.log('Fetching recent orders...');
+        const response = await fetch('/admin/orders', {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('Failed to fetch orders');
+        
+        const orders = await response.json();
+        console.log(`Loaded ${orders.length} orders`);
+        const recentOrders = orders.slice(0, 10); // Get last 10 orders
+        
+        displayRecentOrders(recentOrders);
+    } catch (error) {
+        console.error('Error loading recent orders:', error);
+        document.getElementById('recent-orders-body').innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-danger">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Failed to load orders
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Display recent orders in table
+function displayRecentOrders(orders) {
+    const tbody = document.getElementById('recent-orders-body');
+    if (!tbody) return;
+    
+    if (!orders || orders.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    <i class="fas fa-inbox mr-2"></i>No orders found
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = orders.map(order => `
+        <tr>
+            <td><strong>#${order.OrderID || order._id.slice(-6)}</strong></td>
+            <td>${order.user ? order.user.name : 'Guest'}</td>
+            <td><strong>$${(order.totalAmount || 0).toFixed(2)}</strong></td>
+            <td>
+                <span class="status-badge status-${(order.orderStatus || 'pending').toLowerCase()}">
+                    ${order.orderStatus || 'Pending'}
+                </span>
+            </td>
+            <td>${order.OrderDate ? new Date(order.OrderDate).toLocaleDateString() : 'N/A'}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewOrder('${order._id}')">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Load low stock alerts
+async function loadLowStockAlerts() {
+    try {
+        console.log('Fetching products for low stock alerts...');
+        const response = await fetch('/admin/products', {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('Failed to fetch products');
+        
+        const products = await response.json();
+        console.log(`Loaded ${products.length} products`);
+        const lowStockProducts = products.filter(product => 
+            (product.stockQuantity || 0) <= 10
+        );
+        console.log(`Found ${lowStockProducts.length} products with low stock`);
+        
+        displayLowStockAlerts(lowStockProducts);
+    } catch (error) {
+        console.error('Error loading low stock alerts:', error);
+        document.getElementById('low-stock-alerts').innerHTML = `
+            <div class="text-center text-danger">
+                <i class="fas fa-exclamation-triangle mr-2"></i>Failed to load inventory data
+            </div>
+        `;
+    }
+}
+
+// Display low stock alerts
+function displayLowStockAlerts(products) {
+    const container = document.getElementById('low-stock-alerts');
+    const countBadge = document.getElementById('low-stock-count');
+    
+    if (!container) return;
+    
+    if (countBadge) {
+        countBadge.textContent = products.length;
+    }
+    
+    if (!products || products.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-success">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <div>All products have sufficient stock!</div>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = products.map(product => `
+        <div class="low-stock-item d-flex justify-content-between align-items-center">
+            <div>
+                <div class="product-name">${product.name || 'Unknown Product'}</div>
+                <div class="stock-level">
+                    <i class="fas fa-boxes mr-1"></i>
+                    Current Stock: <strong>${product.stockQuantity || 0}</strong> units
+                </div>
+            </div>
+            <div>
+                <a href="/admin/products" class="btn btn-sm btn-danger action-btn">
+                    <i class="fas fa-plus"></i> Restock
+                </a>
+            </div>
+        </div>
+    `).join('');
+}
+
+// View order details (placeholder function)
+function viewOrder(orderId) {
+    // This would typically open a modal or redirect to order details
+    window.location.href = `/admin/orders?order=${orderId}`;
+}
 
 // =====================
 // Admin Page Scripts
@@ -594,6 +775,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modalElement) {
         categoryModal = new bootstrap.Modal(modalElement);
         setupTableSearch('categorySearchInput', 'table');
+        
+        // Setup icon preview functionality
+        const iconClassInput = document.getElementById('categoryIconClass');
+        if (iconClassInput) {
+            iconClassInput.addEventListener('input', function() {
+                const iconPreview = document.getElementById('categoryIconPreview');
+                if (iconPreview) {
+                    const iconClass = this.value.trim();
+                    if (iconClass) {
+                        iconPreview.className = iconClass;
+                    } else {
+                        iconPreview.className = 'fa-solid fa-question';
+                    }
+                }
+            });
+        }
     }
 });
 window.showAddCategoryModal = function() {
@@ -604,6 +801,11 @@ window.showAddCategoryModal = function() {
     if (document.getElementById('categoryDescription')) document.getElementById('categoryDescription').value = '';
     if (document.getElementById('categoryImageUrl')) document.getElementById('categoryImageUrl').value = '';
     if (document.getElementById('categoryID')) document.getElementById('categoryID').value = '';
+    if (document.getElementById('categoryIconClass')) document.getElementById('categoryIconClass').value = '';
+    // Reset icon preview
+    if (document.getElementById('categoryIconPreview')) {
+        document.getElementById('categoryIconPreview').className = 'fa-solid fa-question';
+    }
     if (categoryModal) categoryModal.show();
 };
 window.editCategory = async function(categoryId) {
@@ -617,6 +819,15 @@ window.editCategory = async function(categoryId) {
         if (document.getElementById('categoryDescription')) document.getElementById('categoryDescription').value = row.getAttribute('data-description') || '';
         if (document.getElementById('categoryImageUrl')) document.getElementById('categoryImageUrl').value = row.getAttribute('data-imageurl') || '';
         if (document.getElementById('categoryID')) document.getElementById('categoryID').value = row.getAttribute('data-categoryid') || '';
+        if (document.getElementById('categoryIconClass')) {
+            const iconClass = row.getAttribute('data-iconclass') || '';
+            document.getElementById('categoryIconClass').value = iconClass;
+            // Update icon preview
+            const iconPreview = document.getElementById('categoryIconPreview');
+            if (iconPreview) {
+                iconPreview.className = iconClass || 'fa-solid fa-question';
+            }
+        }
         if (categoryModal) categoryModal.show();
     } catch (error) {
         AdminUtils.showAlert('Failed to load category details.', 'danger');
@@ -628,6 +839,7 @@ window.saveCategory = async function() {
     const description = document.getElementById('categoryDescription') ? document.getElementById('categoryDescription').value.trim() : '';
     const imageUrl = document.getElementById('categoryImageUrl') ? document.getElementById('categoryImageUrl').value.trim() : '';
     const categoryID = document.getElementById('categoryID') ? document.getElementById('categoryID').value.trim() : '';
+    const iconClass = document.getElementById('categoryIconClass') ? document.getElementById('categoryIconClass').value.trim() : '';
     // Improved required fields check
     const requiredFields = {
         'Category Name': name,
@@ -648,7 +860,7 @@ window.saveCategory = async function() {
         const response = await fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, description, imageUrl, categoryID })
+            body: JSON.stringify({ name, description, imageUrl, categoryID, iconClass })
         });
         const data = await response.json();
         if (data.success) {

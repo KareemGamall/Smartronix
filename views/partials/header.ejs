@@ -152,6 +152,21 @@
       </div>
     </div>
   </nav>
+  
+  <!-- Discount Notification Banner -->
+  <% if (typeof hasActiveDiscounts !== 'undefined' && hasActiveDiscounts) { %>
+    <div id="discountBanner" class="discount-banner">
+      <div class="container-fluid px-3">
+        <div class="discount-marquee">
+          <i class="fas fa-tags text-warning me-2"></i>
+          <div class="marquee-track">
+            <span class="text-white fw-bold">🎉 Special Offers Available! Check out our discounted products</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="discount-banner-spacer"></div>
+  <% } %>
 </header>
   </body>
 </html>

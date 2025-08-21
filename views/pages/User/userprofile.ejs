@@ -1,274 +1,405 @@
 <%- include('../../partials/header') %>
 
 <style>
-    /* Additional styles specific to profile page */
-
-    .card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-sm);
-        transition: var(--transition);
+    /* Modern Minimalist User Profile */
+    .userprofile {
+        padding: 2rem 0;
+        min-height: 80vh;
+        background: linear-gradient(135deg, var(--background) 0%, var(--card-bg) 100%);
     }
 
-    .card:hover {
+    [data-theme="dark"] .userprofile {
+        background: linear-gradient(135deg, var(--background) 0%, var(--card-bg) 100%);
+    }
+
+    .userprofile .container {
+        max-width: 720px;
+    }
+
+    .userprofile .profile-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] .userprofile .profile-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
         box-shadow: var(--shadow-md);
     }
 
-    .card-header {
-        background: var(--background);
-        border-bottom: 1px solid var(--border-color);
-        padding: 1.5rem;
-        border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    .userprofile .profile-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
     }
 
-    .card-header h3 {
-        color: var(--primary);
-        font-weight: 600;
+    [data-theme="dark"] .userprofile .profile-card:hover {
+        box-shadow: var(--shadow-lg);
+    }
+
+    .userprofile .profile-header {
+        padding: 2rem 2rem 1rem 2rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .userprofile .profile-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--primary), var(--teal));
+        border-radius: 2px;
+    }
+
+    .userprofile .profile-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
         margin: 0;
+        letter-spacing: -0.025em;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        justify-content: center;
+        gap: 0.75rem;
     }
 
-    .card-body {
-        padding: 2rem;
-    }
-
-    .form-label {
+    [data-theme="dark"] .userprofile .profile-title {
         color: var(--text-primary);
-        font-weight: 500;
+    }
+
+    .userprofile .profile-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        background: linear-gradient(135deg, var(--primary), var(--teal));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+    }
+
+    .userprofile .profile-body {
+        padding: 1.5rem 2rem 2rem 2rem;
+    }
+
+    .userprofile .form-group {
+        margin-bottom: 1.75rem;
+        opacity: 0;
+        animation: slideUp 0.6s ease-out forwards;
+    }
+
+    .userprofile .form-group:nth-child(1) { animation-delay: 0.1s; }
+    .userprofile .form-group:nth-child(2) { animation-delay: 0.15s; }
+    .userprofile .form-group:nth-child(3) { animation-delay: 0.2s; }
+    .userprofile .form-group:nth-child(4) { animation-delay: 0.25s; }
+
+    .userprofile .form-label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: var(--text-primary);
         margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
 
-    .form-control {
-        background: var(--background);
-        border: 1px solid var(--border-color);
+    [data-theme="dark"] .userprofile .form-label {
         color: var(--text-primary);
-        border-radius: var(--radius-md);
-        padding: 0.75rem 1rem;
-        transition: var(--transition);
-        font-size: 0.95rem;
     }
 
-    .form-control:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(74, 124, 122, 0.1);
-        background: var(--card-bg);
+    .userprofile .form-label-icon {
+        width: 1rem;
+        height: 1rem;
+        color: var(--primary);
+    }
+
+    .userprofile .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 1.5px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--background);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
         outline: none;
     }
 
-    .form-control:read-only {
+    [data-theme="dark"] .userprofile .form-control {
+        border-color: var(--border-color);
+        background: var(--background);
+        color: var(--text-primary);
+    }
+
+    .userprofile .form-control:hover {
+        border-color: var(--primary);
+    }
+
+    [data-theme="dark"] .userprofile .form-control:hover {
+        border-color: var(--primary);
+    }
+
+    .userprofile .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(74, 124, 122, 0.1);
+        background: var(--card-bg);
+    }
+
+    [data-theme="dark"] .userprofile .form-control:focus {
+        background: var(--card-bg);
+        box-shadow: 0 0 0 3px rgba(74, 124, 122, 0.2);
+    }
+
+    .userprofile .form-control:read-only {
         background: var(--hover-bg);
+        border-color: var(--border-color);
         cursor: not-allowed;
+        opacity: 0.7;
     }
 
-    .form-control::placeholder {
+    [data-theme="dark"] .userprofile .form-control:read-only {
+        background: var(--hover-bg);
+        border-color: var(--border-color);
+    }
+
+    .userprofile .form-control::placeholder {
+        color: var(--text-muted);
+        font-weight: 400;
+    }
+
+    .userprofile .form-text {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 0.375rem;
+        display: block;
+    }
+
+    [data-theme="dark"] .userprofile .form-text {
         color: var(--text-muted);
     }
 
-    .form-text {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        margin-top: 0.25rem;
+    .userprofile .textarea-control {
+        resize: vertical;
+        min-height: 80px;
+        max-height: 160px;
     }
 
-    .btn {
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--radius-md);
-        font-weight: 500;
-        transition: var(--transition);
+    .userprofile .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    [data-theme="dark"] .userprofile .form-actions {
+        border-top-color: var(--border-color);
+    }
+
+    .userprofile .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--teal));
         border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
         cursor: pointer;
-        font-size: 0.95rem;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(74, 124, 122, 0.3);
+        text-transform: none;
+        letter-spacing: 0;
     }
 
-    .btn-primary {
-        background: var(--primary);
-        color: var(--white);
-    }
-
-    .btn-primary:hover {
-        background: var(--teal);
-        color: var(--white);
+    .userprofile .btn-primary:hover {
         transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(74, 124, 122, 0.4);
+        background: linear-gradient(135deg, var(--teal), var(--primary));
     }
 
-    .btn-primary:disabled {
+    .userprofile .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    .userprofile .btn-primary:disabled {
         background: var(--gray-medium);
         cursor: not-allowed;
         transform: none;
+        box-shadow: none;
     }
 
-    .alert {
-        border-radius: var(--radius-md);
-        border: none;
-        padding: 1rem 1.5rem;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .alert-success {
-        background: var(--success);
-        color: var(--white);
-    }
-
-    .alert-danger {
-        background: var(--danger);
-        color: var(--white);
-    }
-
-    .alert-info {
-        background: var(--primary);
-        color: var(--white);
-    }
-
-    .btn-close {
-        background: none;
-        border: none;
-        color: inherit;
-        opacity: 0.7;
-        cursor: pointer;
-        font-size: 1.2rem;
-        padding: 0;
-    }
-
-    .btn-close:hover {
-        opacity: 1;
-    }
-
-    .spinner-border-sm {
+    .userprofile .spinner {
         width: 1rem;
         height: 1rem;
-        border-width: 0.1em;
-    }
-
-    .spinner-border {
-        display: inline-block;
-        border: 0.2em solid currentColor;
-        border-right-color: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
         border-radius: 50%;
-        animation: spin 0.75s linear infinite;
+        animation: spin 0.8s linear infinite;
     }
 
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
+    /* Grid System */
+    .userprofile .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 0.25rem;
     }
 
-    .theme-toggle {
-        background: none;
-        border: none;
-        color: var(--text-primary);
-        font-size: 1.2rem;
-        cursor: pointer;
-        padding: 0.5rem;
-        border-radius: var(--radius-sm);
-        transition: var(--transition);
-    }
-
-    .theme-toggle:hover {
-        background: var(--hover-bg);
-        color: var(--primary);
-    }
-
-    .footer {
-        background: var(--card-bg);
-        border-top: 1px solid var(--border-color);
-        padding: 2rem 0;
-        margin-top: auto;
-    }
-
+    /* Responsive Design */
     @media (max-width: 768px) {
-        .main-content {
+        .userprofile {
             padding: 1rem 0;
         }
 
-        .card-body {
-            padding: 1.5rem;
+        .userprofile .form-row {
+            grid-template-columns: 1fr;
+            gap: 1.75rem;
         }
 
-        .btn {
+        .userprofile .profile-header {
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+        }
+
+        .userprofile .profile-body {
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+        }
+
+        .userprofile .profile-title {
+            font-size: 1.5rem;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .userprofile .profile-icon {
+            width: 3rem;
+            height: 3rem;
+            font-size: 1.5rem;
+        }
+
+        .userprofile .form-actions {
+            justify-content: stretch;
+        }
+
+        .userprofile .btn-primary {
             width: 100%;
             justify-content: center;
+            padding: 1rem 2rem;
         }
+    }
+
+    /* Animations */
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Alert Container */
+    #alertContainer {
+        margin-bottom: 1.5rem;
+    }
+
+    /* Form Validation States */
+    .userprofile .form-control.is-valid {
+        border-color: var(--success);
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+
+    .userprofile .form-control.is-invalid {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
     }
 </style>
 
 <!-- Main Content -->
-<div class="container">
+<div class="container userprofile">
     <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-user me-2"></i>User Profile</h3>
+        <div class="col-12">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <h1 class="profile-title">
+                        <div class="profile-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        Profile Settings
+                    </h1>
                 </div>
-                <div class="card-body">
+                <div class="profile-body">
                     <div id="alertContainer"></div>
 
                     <form id="profileForm">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">
-                                        <i class="fas fa-user me-2"></i>Full Name
-                                    </label>
-                                    <input type="text" class="form-control" id="name" name="name"
-                                           value="<%= user.name %>" required>
-                                </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name" class="form-label">
+                                    <i class="fas fa-user form-label-icon"></i>
+                                    Full Name
+                                </label>
+                                <input type="text" class="form-control" id="name" name="name"
+                                       value="<%= user.name %>" required>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">
-                                        <i class="fas fa-envelope me-2"></i>Email
-                                    </label>
-                                    <input type="email" class="form-control" id="email" name="email"
-                                           value="<%= user.email %>" readonly>
-                                    <small class="form-text text-muted">Email cannot be changed</small>
-                                </div>
+                            <div class="form-group">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope form-label-icon"></i>
+                                    Email Address
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       value="<%= user.email %>" readonly>
+                                <small class="form-text">Email cannot be changed</small>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="phoneNumber" class="form-label">
-                                        <i class="fas fa-phone me-2"></i>Phone Number
-                                    </label>
-                                    <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber"
-                                           value="<%= user.phoneNumber || '' %>"
-                                           placeholder="Enter 11-digit phone number"
-                                           maxlength="11">
-                                    <small class="form-text text-muted">Must be exactly 11 digits</small>
-                                </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phoneNumber" class="form-label">
+                                    <i class="fas fa-phone form-label-icon"></i>
+                                    Phone Number
+                                </label>
+                                <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber"
+                                       value="<%= user.phoneNumber || '' %>"
+                                       placeholder="Enter 11-digit phone number"
+                                       maxlength="11">
+                                <small class="form-text">Must be exactly 11 digits</small>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="address" class="form-label">
-                                        <i class="fas fa-map-marker-alt me-2"></i>Address
-                                    </label>
-                                    <textarea class="form-control" id="address" name="address" rows="3"
-                                              placeholder="Enter your address"><%= user.address || '' %></textarea>
-                                </div>
+                            <div class="form-group">
+                                <label for="address" class="form-label">
+                                    <i class="fas fa-map-marker-alt form-label-icon"></i>
+                                    Address
+                                </label>
+                                <textarea class="form-control textarea-control" id="address" name="address"
+                                          placeholder="Enter your complete address"><%= user.address || '' %></textarea>
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-primary" id="updateBtn">
-                                <i class="fas fa-save me-2"></i>Update Profile
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" id="updateBtn">
+                                <i class="fas fa-save"></i>
+                                Update Profile
                             </button>
                         </div>
                     </form>
@@ -286,27 +417,49 @@
             const updateBtn = document.getElementById('updateBtn');
 
             function showAlert(message, type = 'info') {
-                const alertDiv = document.createElement('div');
-                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-                alertDiv.innerHTML = `
-                    <span>${message}</span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                alertContainer.innerHTML = '';
-                alertContainer.appendChild(alertDiv);
+                // Use the main UIManager.showMessage for consistent styling
+                if (window.UIManager && window.UIManager.showMessage) {
+                    window.UIManager.showMessage(message, type);
+                } else {
+                    // Fallback to simple alert if UIManager not available
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = `alert alert-${type}`;
+                    alertDiv.innerHTML = `
+                        <span>${message}</span>
+                        <button type="button" class="btn-close" aria-label="Close"></button>
+                    `;
+                    
+                    // Add close functionality
+                    const closeBtn = alertDiv.querySelector('.btn-close');
+                    closeBtn.addEventListener('click', () => {
+                        alertDiv.remove();
+                    });
+                    
+                    alertContainer.innerHTML = '';
+                    alertContainer.appendChild(alertDiv);
 
-                setTimeout(() => {
-                    if (alertDiv.parentNode) alertDiv.remove();
-                }, 5000);
+                    setTimeout(() => {
+                        if (alertDiv.parentNode) alertDiv.remove();
+                    }, 5000);
+                }
             }
+            
+            // Wait for UIManager to be available
+            function waitForUIManager() {
+                if (window.UIManager && window.UIManager.showMessage) {
+                    return;
+                }
+                setTimeout(waitForUIManager, 100);
+            }
+            
+            // Start waiting for UIManager
+            waitForUIManager();
 
             profileForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
 
                 updateBtn.disabled = true;
-                updateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+                updateBtn.innerHTML = '<div class="spinner"></div>Updating...';
 
                 const formData = {
                     name: document.getElementById('name').value.trim(),
@@ -335,7 +488,7 @@
                     showAlert('An error occurred while updating your profile', 'danger');
                 } finally {
                     updateBtn.disabled = false;
-                    updateBtn.innerHTML = '<i class="fas fa-save me-2"></i>Update Profile';
+                    updateBtn.innerHTML = '<i class="fas fa-save"></i>Update Profile';
                 }
             });
         });

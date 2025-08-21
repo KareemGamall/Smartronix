@@ -3,10 +3,12 @@
 <div class="cartpage">
     <% if (!cart || !cart.items || cart.items.length === 0) { %>
         <div class="empty-cart mt-4">
-            <i class="fa-solid fa-cart-shopping"></i>
+            <i class="fa-solid fa-shopping-cart"></i>
             <h2>Your cart is empty</h2>
-            <p>Looks like you haven't added anything yet.</p>
-            <a href="/products" class="continue-shopping">Continue Shopping</a>
+            <p>Looks like you haven't added anything yet. Start exploring our amazing products!</p>
+            <a href="/products" class="continue-shopping">
+                Continue Shopping
+            </a>
         </div>
     <% } else { %>
         <div class="cartitems mt-4">

@@ -26,6 +26,7 @@
                                     <th>Image</th>
                                     <th>ID</th>
                                     <th>Name</th>
+                                    <th>Icon</th>
                                     <th>Description</th>
                                     <th>Actions</th>
                                 </tr>
@@ -33,12 +34,19 @@
                             <tbody>
                                 <% if (categories && categories.length > 0) { %>
                                     <% categories.forEach(category => { %>
-                                        <tr data-category-id="<%= category._id %>" data-description="<%= category.description %>" data-imageurl="<%= category.imageUrl %>" data-categoryid="<%= category.categoryID %>">
+                                        <tr data-category-id="<%= category._id %>" data-description="<%= category.description %>" data-imageurl="<%= category.imageUrl %>" data-categoryid="<%= category.categoryID %>" data-iconclass="<%= category.iconClass || '' %>">
                                             <td>
                                                 <img src="<%= category.imageUrl %>" alt="<%= category.name %>" style="width: 50px; height: 50px; object-fit: cover;">
                                             </td>
                                             <td><%= category.categoryID %></td>
                                             <td class="category-name"><%= category.name %></td>
+                                            <td>
+                                                <% if (category.iconClass) { %>
+                                                    <i class="<%= category.iconClass %>" style="font-size: 20px; color: var(--primary);"></i>
+                                                <% } else { %>
+                                                    <span class="text-muted">Auto</span>
+                                                <% } %>
+                                            </td>
                                             <td><%= category.description %></td>
                                             <td class="action-buttons">
                                                 <button class="btn btn-warning btn-sm" onclick="editCategory('<%= category._id %>')">
@@ -52,7 +60,7 @@
                                     <% }); %>
                                 <% } else { %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No categories found</td>
+                                        <td colspan="6" class="text-center">No categories found</td>
                                     </tr>
                                 <% } %>
                             </tbody>
@@ -93,6 +101,14 @@
                                             <input type="url" class="form-control" id="categoryImageUrl" required>
                                             <div class="mt-2 image-preview">
                                                 <img id="categoryImagePreview" src="" alt="Category Preview" style="max-width: 200px; max-height: 200px; display: none;" class="category-image">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="categoryIconClass" class="form-label">Icon Class (Optional)</label>
+                                            <input type="text" class="form-control" id="categoryIconClass" placeholder="e.g., fa-solid fa-headphones">
+                                            <small class="form-text text-muted">FontAwesome icon class (e.g., fa-solid fa-headphones, fa-solid fa-mobile-alt)</small>
+                                            <div class="mt-2 icon-preview">
+                                                <i id="categoryIconPreview" class="fa-solid fa-question" style="font-size: 24px; color: var(--primary);"></i>
                                             </div>
                                         </div>
                                     </div>

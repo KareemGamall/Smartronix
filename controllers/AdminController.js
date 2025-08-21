@@ -201,6 +201,11 @@ class AdminController {
             console.log('Products fetched:', products.length);
             console.log('Categories fetched:', categories.length);
             
+            // Check if this is an API request
+            if (req.headers.accept && req.headers.accept.includes('application/json')) {
+                return res.json(products);
+            }
+            
             res.render('pages/Admin/products', {
                 title: 'Product Management',
                 products,
@@ -727,6 +732,11 @@ class AdminController {
             
             console.log('Orders fetched:', orders.length);
             
+            // Check if this is an API request
+            if (req.headers.accept && req.headers.accept.includes('application/json')) {
+                return res.json(orders);
+            }
+            
             res.render('pages/Admin/orders', {
                 title: 'Order Management',
                 orders,
@@ -795,7 +805,7 @@ class AdminController {
 
     static async createCategory(req, res) {
         try {
-            const { name, description, imageUrl, categoryID } = req.body;
+            const { name, description, imageUrl, categoryID, iconClass } = req.body;
             
             console.log('Received category data:', req.body);
 
@@ -830,7 +840,8 @@ class AdminController {
                 name,
                 description,
                 imageUrl,
-                categoryID
+                categoryID,
+                iconClass: iconClass || ''
             });
 
             console.log('Created category:', category);
@@ -857,7 +868,7 @@ class AdminController {
 
     static async updateCategory(req, res) {
         try {
-            const { name, description, imageUrl, categoryID } = req.body;
+            const { name, description, imageUrl, categoryID, iconClass } = req.body;
             
             console.log('Received update data:', req.body);
 
@@ -900,7 +911,8 @@ class AdminController {
                     name,
                     description,
                     imageUrl,
-                    categoryID
+                    categoryID,
+                    iconClass: iconClass || ''
                 },
                 { new: true, runValidators: true }
             );

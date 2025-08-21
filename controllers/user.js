@@ -14,8 +14,20 @@ const VALIDATION = {
   PHONE_LENGTH: 11
 };
 
+// Password requirements description
+const PASSWORD_REQUIREMENTS = {
+  MIN_LENGTH: 8,
+  MAX_LENGTH: 128,
+  REQUIREMENTS: [
+    'At least one uppercase letter (A-Z)',
+    'At least one lowercase letter (a-z)',
+    'At least one number (0-9)',
+    'At least one special character (!@#$%^&*()_+-=[]{};\':"\\|,.<>/?'
+  ]
+};
+
 // Password strength requirements
-// const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,11 +51,39 @@ const logger = {
 };
 
 // Validation functions
+/**
+ * Validates password strength according to security requirements
+ * @param {string} password - The password to validate
+ * @returns {string} - The validated password
+ * @throws {Error} - If password doesn't meet requirements
+ */
 const validatePassword = (password) => {
-  if (password.length < 6) {
-    throw new Error('Password must be at least 6 characters long');
+  if (password.length < VALIDATION.MIN_PASSWORD_LENGTH) {
+    throw new Error(`Password must be at least ${VALIDATION.MIN_PASSWORD_LENGTH} characters long`);
   }
+  
+  if (password.length > VALIDATION.MAX_PASSWORD_LENGTH) {
+    throw new Error(`Password must be no more than ${VALIDATION.MAX_PASSWORD_LENGTH} characters long`);
+  }
+  
+  if (!PASSWORD_REGEX.test(password)) {
+    throw new Error('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+  }
+  
   return password;
+};
+
+/**
+ * Returns password requirements for frontend display
+ * @returns {Object} - Password requirements object
+ */
+const getPasswordRequirements = () => {
+  return {
+    minLength: VALIDATION.MIN_PASSWORD_LENGTH,
+    maxLength: VALIDATION.MAX_PASSWORD_LENGTH,
+    requirements: PASSWORD_REQUIREMENTS.REQUIREMENTS,
+    regex: PASSWORD_REGEX.toString()
+  };
 };
 
 const validateEmail = (email) => {

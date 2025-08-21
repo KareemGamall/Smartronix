@@ -10,7 +10,13 @@
             <h1 class="product-title"><%= product.name %></h1>
             
             <div class="product-price">
-                <span class="current-price">$<%= product.price %></span>
+                <% if (product.hasDiscount) { %>
+                    <span class="text-muted text-decoration-line-through me-2">$<%= product.originalPrice %></span>
+                    <span class="current-price text-danger fw-bold">$<%= product.price %></span>
+                    <span class="badge bg-danger ms-2">-<%= product.discountPercentage %>%</span>
+                <% } else { %>
+                    <span class="current-price">$<%= product.price %></span>
+                <% } %>
             </div>
 
             <p class="product-description">

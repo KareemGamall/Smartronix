@@ -79,8 +79,19 @@
                                     
                                     <div class="product-footer">
                                         <div class="price-section">
-                                            <div class="price-label">Price</div>
-                                            <div class="price">$<%= product.price %></div>
+                                            <% if (product.hasDiscount) { %>
+                                                <div class="price-label">
+                                                    Price
+                                                    <span class="original-price">$<%= product.originalPrice %></span>
+                                                </div>
+                                                <div class="price">
+                                                    <span class="text-danger fw-bold">$<%= product.price %></span>
+                                                    <span class="badge bg-danger ms-2">-<%= product.discountPercentage %>%</span>
+                                                </div>
+                                            <% } else { %>
+                                                <div class="price-label">Price</div>
+                                                <div class="price">$<%= product.price %></div>
+                                            <% } %>
                                         </div>
                                         <button class="add-to-cart" data-product-id="<%= product._id %>">
                                             Add to cart
@@ -133,8 +144,19 @@
                                     
                                     <div class="product-footer">
                                         <div class="price-section">
-                                            <div class="price-label">Price</div>
-                                            <div class="price">$<%= product.price %></div>
+                                            <% if (product.hasDiscount) { %>
+                                                <div class="price-label">
+                                                    Price
+                                                    <span class="original-price">$<%= product.originalPrice %></span>
+                                                </div>
+                                                <div class="price">
+                                                    <span class="text-danger fw-bold">$<%= product.price %></span>
+                                                    <span class="badge bg-danger ms-2">-<%= product.discountPercentage %>%</span>
+                                                </div>
+                                            <% } else { %>
+                                                <div class="price-label">Price</div>
+                                                <div class="price">$<%= product.price %></div>
+                                            <% } %>
                                         </div>
                                         <button class="add-to-cart" data-product-id="<%= product._id %>">
                                             Add to cart
