@@ -237,7 +237,17 @@ window.AdminUtils = AdminUtils;
 // =====================
 
 // Dashboard initialization
+// Global variable to track dashboard initialization
+let dashboardInitialized = false;
+let dashboardRefreshInterval = null;
+
 function initializeDashboard() {
+    // Prevent multiple initializations
+    if (dashboardInitialized) {
+        console.log('Dashboard already initialized, skipping...');
+        return;
+    }
+    
     console.log('Initializing dashboard...');
     
     // Only initialize if we're on the dashboard page
@@ -257,8 +267,13 @@ function initializeDashboard() {
         loadLowStockAlerts();
     }
     
+    // Clear any existing interval before setting a new one
+    if (dashboardRefreshInterval) {
+        clearInterval(dashboardRefreshInterval);
+    }
+    
     // Refresh dashboard data every 30 seconds
-    setInterval(() => {
+    dashboardRefreshInterval = setInterval(() => {
         if (document.getElementById('recent-orders-body')) {
             loadRecentOrders();
         }
@@ -267,7 +282,20 @@ function initializeDashboard() {
         }
     }, 30000); // 30 seconds
     
+    // Mark as initialized
+    dashboardInitialized = true;
     console.log('Dashboard initialization complete');
+}
+
+// Cleanup function to clear dashboard refresh interval
+function cleanupDashboard() {
+    if (dashboardRefreshInterval) {
+        clearInterval(dashboardRefreshInterval);
+        dashboardRefreshInterval = null;
+        console.log('Dashboard refresh interval cleared');
+    }
+    dashboardInitialized = false;
+    console.log('Dashboard cleanup complete');
 }
 
 // Load recent orders
