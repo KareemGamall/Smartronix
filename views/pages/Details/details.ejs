@@ -1,6 +1,6 @@
 <%- include('../../partials/header') %>
 
-<div class="product-container">
+<div class="product-container my-4">
     <div class="product-main">
         <div class="product-images">
             <img src="<%= product.imageUrl %>" alt="<%= product.name %>" class="main-image" id="mainImage">
@@ -21,7 +21,7 @@
                 <div class="quantity-selector">
                     <span class="quantity-label">Quantity:</span>
                     <div class="quantity-controls">
-                        <button type="button" class="btn btn-outline-secondary quantity-btn" data-action="decrease">
+                        <button type="button" class="btn btn-outline-secondary quantity-btn" data-action="decrease" data-product-id="<%= product._id %>">
                             <i class="fas fa-minus"></i>
                         </button>
                         <input type="number" 
@@ -31,14 +31,14 @@
                                max="<%= product.stockQuantity %>"
                                data-stock="<%= product.stockQuantity %>"
                                id="quantity">
-                        <button type="button" class="btn btn-outline-secondary quantity-btn" data-action="increase">
+                        <button type="button" class="btn btn-outline-secondary quantity-btn" data-action="increase" data-product-id="<%= product._id %>">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="action-buttons">
-                    <button class="btn btn-primary add-to-cart-btn" data-product-id="<%= product._id %>">
+                    <button class="btn btn-primary add-to-cart" data-product-id="<%= product._id %>">
                         <i class="fas fa-cart-plus"></i> Add to Cart
                     </button>
                     <button class="btn btn-success buy-now-btn" data-product-id="<%= product._id %>">

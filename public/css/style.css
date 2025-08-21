@@ -66,6 +66,38 @@
     --accent: var(--teal);
 }
 
+/* Dark Mode Hero Section */
+[data-theme="dark"] .hero-section {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+}
+
+[data-theme="dark"] .hero-section::before {
+    background: linear-gradient(45deg, rgba(123, 162, 158, 0.1) 0%, rgba(104, 135, 134, 0.1) 100%);
+}
+
+[data-theme="dark"] .hero-title {
+    color: var(--light-sage);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .hero-subtitle {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .hero-btn.btn-outline-primary {
+    border-color: var(--light-sage);
+    color: var(--light-sage);
+}
+
+[data-theme="dark"] .hero-btn.btn-outline-primary:hover {
+    background: var(--light-sage);
+    color: var(--white);
+}
+
+[data-theme="dark"] .hero-section::after {
+    background: radial-gradient(circle, rgba(123, 162, 158, 0.2) 0%, transparent 70%);
+}
+
 /* Dark Mode Category Section */
 [data-theme="dark"] .categories h2 {
     color: var(--light-sage);
@@ -84,43 +116,73 @@
     background: #1a1a1a;
 }
 
-[data-theme="dark"] .category-card h3 {
+[data-theme="dark"] .category-card-title {
     color: var(--light-sage);
 }
 
-[data-theme="dark"] .category-card p {
+[data-theme="dark"] .category-card-subtitle {
     color: #e0e0e0;
     opacity: 0.8;
 }
 
-/* Dark Mode New Arrivals Section */
-[data-theme="dark"] .new-arrivals h2 {
+/* Dark mode category icons */
+[data-theme="dark"] .card-icon {
+    background: transparent;
+    border-color: var(--light-sage);
+}
+
+[data-theme="dark"] .card-icon i {
     color: var(--light-sage);
 }
 
-[data-theme="dark"] .best-sellers h2 {
-    color: var(--light-sage);
+[data-theme="dark"] .category-card:hover .card-icon {
+    border-color: var(--accent);
+    transform: scale(1.05);
 }
 
-[data-theme="dark"] .new-arrivals .card {
-    background: #2d2d2d;
+[data-theme="dark"] .category-card:hover .card-icon i {
+    color: var(--accent);
+}
+
+/* Dark mode new product cards */
+[data-theme="dark"] .product-card {
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .new-arrivals .card:hover {
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+[data-theme="dark"] .product-card:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-[data-theme="dark"] .new-arrivals .card-img-top {
-    background: #1a1a1a;
+[data-theme="dark"] .product-details {
+    background: var(--card-bg);
 }
 
-[data-theme="dark"] .new-arrivals .card-title {
+[data-theme="dark"] .product-title {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .product-description {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .price {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .price-label {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .category-name {
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+/* Dark Mode Section Headers */
+[data-theme="dark"] .new-arrivals h2,
+[data-theme="dark"] .best-sellers h2 {
     color: var(--light-sage);
-}
-
-[data-theme="dark"] .new-arrivals .card-text {
-    color: #e0e0e0;
 }
 
 /* Override for the navbar toggler icon in dark mode */
@@ -184,6 +246,7 @@ body {
     z-index: 1030;
     height: 75px;
     box-shadow: var(--shadow-sm);
+    border-radius: 30px;
 }
 
 /* (Reverted) Do not override the navbar background; use existing theme variables */
@@ -219,7 +282,26 @@ body {
     gap: 1rem;
     margin: 0;
 }
+.navbar .form-control {
+    border-top-left-radius: 30px !important;   /* or any value you like */
+    border-bottom-left-radius: 30px !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important; /* or any value you prefer */
+}
+.input-group .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
 
+.input-group .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: -1px; /* Remove double border between input and button */
+}
+.navbar .btn,
+.navbar .btn-outline-light {
+    border-radius: 20px; /* or any value you prefer */
+}
 .navigation-section .nav-item {
     margin: 0;
 }
@@ -254,6 +336,7 @@ body {
 [data-theme="dark"] .navbar {
     background: var(--card-bg) !important;
     border-bottom-color: var(--border-color);
+    border-radius:30px;
 }
 
 [data-theme="dark"] .navbar-nav .nav-link {
@@ -527,6 +610,9 @@ body {
     font-weight: 600;
     color: var(--primary) !important;
     transition: var(--transition);
+    padding-left: 10px;
+    position: relative;      /* Add this line */
+    top: -3px; 
 }
 
 .navbar-brand:hover {
@@ -661,17 +747,144 @@ h2 {
 .hero-section {
     width: 100%;
     margin: 0 0 3rem 0;
-    padding: 0;
+    padding: 4rem 0;
+    background: linear-gradient(135deg, var(--background) 0%, var(--cream) 100%);
     border-radius: var(--radius-lg);
     overflow: hidden;
     border: 1px solid var(--border-color);
+    position: relative;
 }
 
-.hero-image img {
-    width: 100%;
-    height: 60vh;
-    object-fit: cover;
-    display: block;
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(123, 162, 158, 0.05) 0%, rgba(104, 135, 134, 0.05) 100%);
+    pointer-events: none;
+}
+
+.hero-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-text {
+    padding-right: 2rem;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--dark-teal);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+    font-weight: 400;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.hero-btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hero-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+}
+
+.hero-btn.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--dark-teal));
+    border: none;
+    color: var(--white);
+}
+
+.hero-btn.btn-primary:hover {
+    background: linear-gradient(135deg, var(--dark-teal), var(--primary));
+}
+
+.hero-btn.btn-outline-primary {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+.hero-btn.btn-outline-primary:hover {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.hero-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.hero-phone {
+    max-width: 100%;
+    height: auto;
+    max-height: 500px;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.15));
+    transition: all 0.3s ease;
+    animation: float 6s ease-in-out infinite;
+    will-change: transform;
+}
+
+.hero-phone:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Hero section decorative elements */
+.hero-section::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(123, 162, 158, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 /* ===============================================
@@ -730,61 +943,150 @@ h2 {
 }
 
 .category-card {
-    background: white;
-    border: none;
-    border-radius: 12px;
+    background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%);
+    border-radius: var(--radius-xl);
+    padding: 30px 25px;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid var(--border-color);
+    position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
-    height: 100%;
+    min-height: 180px;
     display: flex;
     flex-direction: column;
-    text-align: center;
-    cursor: pointer;
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+    justify-content: center;
 }
 
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--teal), var(--light-sage), var(--sage));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
 /* (moved to responsive breakpoints) */
 
 .category-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
 }
-
-.card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    transition: var(--transition);
-    height: 100%;
+.category-card:hover::before {
+    transform: scaleX(1);
+}
+.category-card-header {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
 }
 
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+.category-card-content {
+    flex: 1;
 }
 
-.card-img-top, .product-card img {
-    width: 100%;
-    height: 250px;
-    object-fit: contain;
-    padding: 1rem;
-    background: var(--background);
+.category-card-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.2;
+}
+
+.category-card-subtitle {
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.card-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
     transition: var(--transition);
 }
 
-.category-card img {
-    width: 100%;
-    height: 220px;
-    object-fit: contain;
-    padding: 2rem;
-    background: var(--background);
-    transition: all 0.3s ease;
+.card-icon i {
+    font-size: 36px;
+    z-index: 2;
+    position: relative;
+    transition: var(--transition);
 }
 
-.category-card:hover img {
+/* Category icon styling - no background, theme-aware colors */
+.card-icon {
+    background: transparent;
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-lg);
+}
+
+.card-icon i {
+    color: var(--primary);
+    transition: var(--transition);
+}
+
+/* Hover effect for category icons */
+.category-card:hover .card-icon {
+    border-color: var(--dark-teal);
     transform: scale(1.05);
+}
+
+.category-card:hover .card-icon i {
+    color: var(--dark-teal);
+}
+
+.card-arrow {
+    display: inline-flex;
+    align-items: center;
+    color: var(--primary);
+    font-size: 18px;
+    transition: var(--transition);
+}
+
+.category-card:hover .card-arrow {
+    transform: translateX(5px);
+    color: var(--dark-teal);
+}
+
+.decorative-shape {
+    position: absolute;
+    bottom: -20px;
+    right: -20px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--accent), var(--light-sage));
+    border-radius: 50%;
+    opacity: 0.1;
+}
+
+@media (max-width: 768px) {
+    .categories-grid {
+        grid-template-columns: 1fr;
+    }
+    .category-card-title {
+        font-size: 24px;
+    }
+    .card-icon {
+        width: 70px;
+        height: 70px;
+    }
+    .card-icon i {
+        font-size: 32px;
+    }
+    
+    /* Ensure icon borders scale properly on mobile */
+    .card-icon {
+        border-width: 2px;
+    }
 }
 
 /* ===============================================
@@ -812,60 +1114,12 @@ h2 {
     letter-spacing: 0.5px;
 }
 
-.new-arrivals .card {
-    background: white;
-    border: none;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+/* New arrivals section specific styling (if needed) */
+.new-arrivals {
+    padding: 4rem 0;
 }
 
-.new-arrivals .card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
-}
-
-.new-arrivals .card-img-top {
-    height: 300px;
-    object-fit: contain;
-    padding: 2rem;
-    background: var(--background);
-    transition: all 0.3s ease;
-}
-
-.new-arrivals .card:hover .card-img-top {
-    transform: scale(1.05);
-}
-
-.new-arrivals .card-title {
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: var(--dark-teal);
-    margin-bottom: 0.5rem;
-    letter-spacing: 0.3px;
-}
-
-.new-arrivals .card-text {
-    font-size: 0.9rem;
-    color: var(--sage);
-    line-height: 1.4;
-    opacity: 0.8;
-}
-
-.new-arrivals .card-footer {
-    background: var(--background);
-    border-top: 1px solid var(--border-color);
-    padding: 1rem 1.5rem;
-}
-
-/* Fix for all product cards - show full image */
-.card .card-img-top {
-    height: 250px;
-    object-fit: contain;
-    padding: 1rem;
-    background: var(--background);
-}
+/* Legacy card styles removed - now using .product-card class */
 
 .card-body {
     padding: 1.5rem;
@@ -881,7 +1135,7 @@ h2 {
     margin-bottom: 0.5rem;
 }
 
-.category-card h3 {
+.category-card-title {
     font-size: 1.25rem;
     font-weight: 500;
     color: var(--dark-teal);
@@ -895,7 +1149,7 @@ h2 {
     flex: 1;
 }
 
-.category-card p {
+.category-card-subtitle {
     font-size: 0.9rem;
     color: var(--sage);
     margin: 0 1rem 1.5rem 1rem;
@@ -977,9 +1231,7 @@ h2 {
     background: #c82333;
 }
 
-.card .btn {
-    width: 100%;
-}
+/* Legacy button styles removed - now using .add-to-cart class */
 
 /* ===============================================
    CART STYLES
@@ -1185,6 +1437,156 @@ h2 {
 
 .checkout-btn:hover {
     background: var(--teal);
+}
+
+/* ===============================================
+   NEW PRODUCT CARD DESIGN
+   =============================================== */
+.product-card {
+    width: 320px;
+    background: transparent;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    transition: var(--transition);
+    margin: 0 auto;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.product-image {
+    position: relative;
+    height: 250px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.product-img {
+    max-width: 280px;
+    max-height: 180px;
+    object-fit: contain;
+    border-radius: 20px;
+    transform: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    transition: var(--transition);
+}
+
+.product-image a:hover .product-img {
+    transform: scale(1.05);
+}
+
+.product-details {
+    padding: 24px;
+    background: var(--card-bg);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    margin-top: -16px;
+    position: relative;
+    z-index: 2;
+}
+
+.product-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    line-height: 1.2;
+}
+
+.product-tags {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.category-name {
+    padding: 6px 12px;
+    background: var(--cream);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.product-description {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.price-section {
+    flex: 1;
+}
+
+.price-label {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.price {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.add-to-cart {
+    background: linear-gradient(135deg, var(--primary), var(--dark-teal));
+    color: var(--text-white);
+    border: none;
+    padding: 14px 24px;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    min-width: 120px;
+}
+
+.add-to-cart:hover {
+    background: linear-gradient(135deg, var(--dark-teal), var(--primary));
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Decorative elements removed */
+
+/* Responsive design for new product cards */
+@media (max-width: 480px) {
+    .product-card {
+        width: 100%;
+        max-width: 320px;
+    }
+    
+    .product-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .add-to-cart {
+        width: 100%;
+        margin-top: 16px;
+    }
 }
 
 /* ===============================================
@@ -1447,6 +1849,88 @@ h2 {
 /* ===============================================
    RESPONSIVE DESIGN
    =============================================== */
+
+/* Hero Section Responsive */
+@media (max-width: 992px) {
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+    }
+    
+    .hero-text {
+        padding-right: 0;
+        order: 1;
+    }
+    
+    .hero-image {
+        order: 2;
+    }
+    
+    .hero-title {
+        font-size: 3rem;
+    }
+    
+    .hero-buttons {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 3rem 0;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hero-btn {
+        width: 100%;
+        max-width: 250px;
+        justify-content: center;
+    }
+    
+    .hero-phone {
+        max-height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        padding: 2rem 0;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .hero-btn {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .hero-phone {
+        max-height: 300px;
+    }
+}
+
 @media (max-width: 992px) {
     .product-main {
         grid-template-columns: 1fr;
@@ -1523,10 +2007,7 @@ h2 {
         margin-bottom: 2rem;
     }
     
-    .new-arrivals .card-img-top {
-        height: 300px; /* increase product image height on mobile/tablet */
-        padding: 1.5rem;
-    }
+    /* Product card responsive styles handled by .product-card class */
     
     /* Best Sellers responsive */
     .best-sellers {
@@ -1536,11 +2017,6 @@ h2 {
     .best-sellers h2 {
         font-size: 2rem;
         margin-bottom: 2rem;
-    }
-    
-    .best-sellers .card-img-top {
-        height: 300px;
-        padding: 1.5rem;
     }
     
     /* Product Details responsive */
@@ -1647,12 +2123,12 @@ h2 {
         padding: 1rem;
     }
     
-    .category-card h3 {
+    .category-card-title {
         font-size: 1.1rem;
         margin: 1rem 1rem 0.5rem 1rem;
     }
     
-    .category-card p {
+    .category-card-subtitle {
         font-size: 0.85rem;
         margin: 0 1rem 1rem 1rem;
     }
@@ -1666,18 +2142,7 @@ h2 {
         margin-bottom: 1.5rem;
     }
     
-    .new-arrivals .card-img-top {
-        height: 280px; /* taller product images on small phones */
-        padding: 1rem;
-    }
-    
-    .new-arrivals .card-title {
-        font-size: 1.1rem;
-    }
-    
-    .new-arrivals .card-text {
-        font-size: 0.85rem;
-    }
+    /* Product card responsive styles handled by .product-card class */
     
     /* Best Sellers responsive */
     .best-sellers {
@@ -1687,19 +2152,6 @@ h2 {
     .best-sellers h2 {
         font-size: 1.75rem;
         margin-bottom: 1.5rem;
-    }
-    
-    .best-sellers .card-img-top {
-        height: 280px;
-        padding: 1rem;
-    }
-    
-    .best-sellers .card-title {
-        font-size: 1.1rem;
-    }
-    
-    .best-sellers .card-text {
-        font-size: 0.85rem;
     }
     
     .navbar-brand {
@@ -2314,25 +2766,8 @@ h2 {
         text-align: center;
     }
     
-    .col-md-4 {
+    .col-lg-4 {
         margin-bottom: 1.5rem;
-    }
-    
-    .card {
-        height: auto;
-        min-height: 400px;
-    }
-    
-    .card-img-top {
-        height: 250px;
-    }
-    
-    .card-title {
-        font-size: 1.1rem;
-    }
-    
-    .card-text {
-        font-size: 0.85rem;
     }
 }
 
@@ -2346,24 +2781,8 @@ h2 {
         margin-bottom: 1rem;
     }
     
-    .col-md-4 {
+    .col-lg-4 {
         margin-bottom: 1rem;
-    }
-    
-    .card {
-        min-height: 350px;
-    }
-    
-    .card-img-top {
-        height: 200px;
-    }
-    
-    .card-title {
-        font-size: 1rem;
-    }
-    
-    .card-text {
-        font-size: 0.8rem;
     }
     
     .btn {
@@ -2672,50 +3091,6 @@ h2 {
 }
 
 /* ===============================================
-   CARD RESPONSIVE
+   CARD RESPONSIVE - REMOVED (now using .product-card class)
    =============================================== */
-@media (max-width: 768px) {
-    .card {
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .card-body {
-        padding: 1.25rem;
-    }
-    
-    .card-footer {
-        padding: 1rem 1.25rem;
-    }
-    
-    .card-title {
-        font-size: 1.1rem;
-    }
-    
-    .card-text {
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .card {
-        border-radius: var(--radius-sm);
-    }
-    
-    .card-body {
-        padding: 1rem;
-    }
-    
-    .card-footer {
-        padding: 0.75rem 1rem;
-    }
-    
-    .card-title {
-        font-size: 1rem;
-    }
-    
-    .card-text {
-        font-size: 0.85rem;
-    }
-}
 

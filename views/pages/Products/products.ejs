@@ -12,38 +12,36 @@
     <div class="row">
         <% if (products && products.length > 0) { %>
             <% products.forEach(product => { %>
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <a href="/products/details/<%= product._id %>" class="text-decoration-none">
-                            <img src="<%= product.imageUrl %>" 
-                                 class="card-img-top" 
-                                 alt="<%= product.name %>">
-                        </a>
-                        
-                        <div class="card-body">
-                            <a href="/products/details/<%= product._id %>" class="text-decoration-none text-dark">
-                                <h5 class="card-title"><%= product.name %></h5>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="product-card">
+                        <div class="product-image">
+                            <a href="/products/details/<%= product._id %>" class="text-decoration-none">
+                                <img src="<%= product.imageUrl %>" 
+                                     alt="<%= product.name %>" 
+                                     class="product-img">
                             </a>
-                            <p class="card-text text-muted">
-                                <%= product.description.substring(0, 100) %>...
-                            </p>
-                            <p class="card-text">
-                                <strong>Price: $<%= product.price %></strong>
-                            </p>
-                            <p class="card-text">
-                                <small class="text-muted">
-                                    Category: <%= product.category ? product.category.name : 'Uncategorized' %>
-                                </small>
-                            </p>
                         </div>
                         
-                        <div class="card-footer bg-white">
-                            <button class="btn btn-primary btn-block add-to-cart-btn" 
-                                    data-product-id="<%= product._id %>"
-                                    data-bs-toggle="tooltip"
-                                    title="Add to Cart">
-                                <i class="fas fa-cart-plus"></i> Add To Cart
-                            </button>
+                        <div class="product-details">
+                            <h3 class="product-title"><%= product.name %></h3>
+                            
+                            <div class="product-tags">
+                                <span class="category-name"><%= product.category ? product.category.name : 'Uncategorized' %></span>
+                            </div>
+                            
+                            <p class="product-description">
+                                <%= product.description.substring(0, 100) %>...
+                            </p>
+                            
+                            <div class="product-footer">
+                                <div class="price-section">
+                                    <div class="price-label">Price</div>
+                                    <div class="price">$<%= product.price %></div>
+                                </div>
+                                <button class="add-to-cart" data-product-id="<%= product._id %>">
+                                    Add to cart
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

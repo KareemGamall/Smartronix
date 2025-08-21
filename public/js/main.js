@@ -46,7 +46,7 @@ const CONSTANTS = {
     DEBOUNCE_DELAY: 300,
     SELECTORS: {
         CART_COUNTER: '.CartCounter',
-        ADD_TO_CART_BTN: '.add-to-cart-btn',
+        ADD_TO_CART_BTN: '.add-to-cart',
         QUANTITY_INPUT: '.quantity-input',
         QUANTITY_CONTROLS: '.qty',
         TAB_BUTTONS: '.tab-btn',
@@ -679,28 +679,31 @@ class EventHandlers {
     static initializeCartButtons() {
         const addToCartButtons = document.querySelectorAll(CONSTANTS.SELECTORS.ADD_TO_CART_BTN);
         
-        addToCartButtons.forEach(button => {
+        addToCartButtons.forEach((button, index) => {
             // Prevent duplicate bindings across re-renders or repeated initializations
             if (button.dataset.bound === '1') return;
             button.dataset.bound = '1';
 
             button.addEventListener('click', async function(e) {
                 e.preventDefault();
+                
                 const productId = this.dataset.productId;
                 
-                // FIXED: Get the actual quantity from the input field
+                // For product cards, always use quantity 1
+                // For product details page, try to get quantity from input
+                let quantity = 1;
                 const quantityInput = document.querySelector('#quantity');
-                const quantity = quantityInput ? 
-                    Utils.parseInteger(quantityInput.value, 1) : 1;
+                if (quantityInput) {
+                    quantity = Utils.parseInteger(quantityInput.value, 1);
+                }
                 
-                // More explicit logging for easier debugging
-                console.log('Adding to cart:', 'productId=', productId, 'quantity=', quantity);
-                
-                // Scroll to cart icon after adding to cart
-                await CartManager.addToCart(productId, quantity);
-                
-                // Scroll to cart icon with highlight effect
-                CartManager.scrollToCartIcon();
+                try {
+                    await CartManager.addToCart(productId, quantity);
+                    // Scroll to cart icon with highlight effect
+                    CartManager.scrollToCartIcon();
+                } catch (error) {
+                    console.error('Error adding to cart:', error);
+                }
             });
         });
     }
@@ -744,21 +747,29 @@ class EventHandlers {
 
     static initializeProductDetailsAddToCart() {
         const addToCartBtn = document.querySelector('.add-to-cart');
+        console.log('Product details add to cart button found:', addToCartBtn);
         if (!addToCartBtn) return;
 
         addToCartBtn.addEventListener('click', async function(e) {
             e.preventDefault();
             
-            const productId = this.getAttribute('data-product-id');
-            const quantityInput = document.querySelector(CONSTANTS.SELECTORS.QUANTITY_INPUT);
+            const productId = this.dataset.productId;
+            const quantityInput = document.querySelector('#quantity');
             const quantity = quantityInput ? Utils.parseInteger(quantityInput.value, 1) : 1;
 
-            await CartManager.addToCart(productId, quantity);
+            try {
+                await CartManager.addToCart(productId, quantity);
+                // Scroll to cart icon with highlight effect
+                CartManager.scrollToCartIcon();
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+            }
         });
     }
 
     static initializeBuyNowButton() {
         const buyNowBtn = document.querySelector('.buy-now-btn');
+        console.log('Buy now button found:', buyNowBtn);
         if (!buyNowBtn) return;
 
         buyNowBtn.addEventListener('click', async function(e) {
@@ -794,6 +805,7 @@ class EventHandlers {
     }
 
     static initializeQuantityControls() {
+        console.log('Initializing quantity controls...');
         // Handle quantity button clicks
         document.addEventListener('click', function(e) {
             if (e.target.closest('.quantity-btn')) {
@@ -874,6 +886,18 @@ class BootstrapManager {
                 });
             }
         }
+        
+        // Initialize all Bootstrap dropdowns manually if needed
+        const dropdownElements = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+        dropdownElements.forEach(element => {
+            if (element && !element.dataset.dropdownInitialized) {
+                element.dataset.dropdownInitialized = 'true';
+                // Bootstrap should auto-initialize, but we can ensure it
+                if (window.bootstrap && window.bootstrap.Dropdown) {
+                    new window.bootstrap.Dropdown(element);
+                }
+            }
+        });
     }
 }
 
@@ -881,7 +905,10 @@ class BootstrapManager {
 class ThemeManager {
     static init() {
         const themeToggle = document.getElementById('themeToggle');
-        if (!themeToggle) return; // Exit if themeToggle doesn't exist
+        if (!themeToggle) {
+            console.warn('Theme toggle button not found');
+            return; // Exit if themeToggle doesn't exist
+        }
         
         const themeIcon = themeToggle.querySelector('i');
         
@@ -950,62 +977,75 @@ class ECommerceApp {
     }
 }
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    ECommerceApp.initialize();
-    ThemeManager.init();
-
-    // Handle Contact Us link click
-    const contactLink = document.querySelector('a[href="#contact"]');
-    if (contactLink) {
-        contactLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            const footer = document.getElementById('contact');
-            if (footer) {
-                footer.scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    }
-
-    // Search form handling
-    const searchForm = document.querySelector('form[role="search"]');
-    const searchInput = document.getElementById('search');
+// Prevent duplicate initialization
+if (window.appInitialized) {
+    console.log('App already initialized, skipping...');
+} else {
+    window.appInitialized = true;
     
-    if (searchForm && searchInput) {
-        searchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const query = searchInput.value.trim();
-            if (query) {
-                // Sanitize search query
-                const sanitizedQuery = XSSProtection.escapeHtml(query);
-                window.location.href = `/products/search?q=${encodeURIComponent(sanitizedQuery)}`;
-            }
-        });
-    }
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        ECommerceApp.initialize();
+        ThemeManager.init();
 
-    // Smooth scroll functionality
-    const scrollLinks = document.querySelectorAll('a[href^="#"]');
-    
-    scrollLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href');
-            
-            // If href is just "#", do nothing to allow default anchor behavior
-            // or Bootstrap dropdowns to work.
-            if (targetId === '#') {
-                return;
-            }
-            
-            e.preventDefault();
-            
-            const targetElement = document.querySelector(targetId);
-            
-            if (targetElement) {
-                targetElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
+        // Handle Contact Us link click
+        const contactLink = document.querySelector('a[href="#contact"]');
+        if (contactLink) {
+            contactLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                const footer = document.getElementById('contact');
+                if (footer) {
+                    footer.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        }
+
+        // Search form handling
+        const searchForm = document.querySelector('form[role="search"]');
+        const searchInput = document.getElementById('search');
+        
+        console.log('Search form found:', searchForm);
+        console.log('Search input found:', searchInput);
+        
+        if (searchForm && searchInput) {
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const query = searchInput.value.trim();
+                if (query) {
+                    // Sanitize search query
+                    const sanitizedQuery = XSSProtection.escapeHtml(query);
+                    window.location.href = `/products/search?q=${encodeURIComponent(sanitizedQuery)}`;
+                }
+            });
+            console.log('Search form event listener attached');
+        } else {
+            console.warn('Search form or input not found');
+        }
+
+        // Smooth scroll functionality
+        const scrollLinks = document.querySelectorAll('a[href^="#"]');
+        
+        scrollLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href');
+                
+                // If href is just "#", do nothing to allow default anchor behavior
+                // or Bootstrap dropdowns to work.
+                if (targetId === '#') {
+                    return;
+                }
+                
+                e.preventDefault();
+                
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
         });
     });
-});
+}

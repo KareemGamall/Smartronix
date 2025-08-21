@@ -13,6 +13,45 @@ const LIMITS = {
 // Cache duration in milliseconds (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
 
+// Helper function to map category names to icon classes
+const getCategoryIconClass = (categoryName) => {
+  if (!categoryName) return 'default';
+  
+  const name = categoryName.toLowerCase().trim();
+  
+  // Map specific category names to icon classes
+  if (name.includes('headphone') || name.includes('earphone') || name.includes('audio')) {
+    return 'headphones';
+  }
+  if (name.includes('mobile') || name.includes('phone') || name.includes('smartphone')) {
+    return 'mobile-alt';
+  }
+  if (name.includes('tv') || name.includes('television') || name.includes('display')) {
+    return 'tv';
+  }
+  if (name.includes('laptop') || name.includes('computer') || name.includes('pc')) {
+    return 'laptop';
+  }
+  if (name.includes('tablet') || name.includes('ipad')) {
+    return 'tablet-alt';
+  }
+  if (name.includes('camera') || name.includes('photo')) {
+    return 'camera';
+  }
+  if (name.includes('gaming') || name.includes('game')) {
+    return 'gamepad';
+  }
+  if (name.includes('accessory') || name.includes('accessories')) {
+    return 'puzzle-piece';
+  }
+  if (name.includes('wearable') || name.includes('watch') || name.includes('fitness')) {
+    return 'clock';
+  }
+  
+  // Default icon class for unmapped categories
+  return 'box';
+};
+
 // Simple cache object
 const cache = {
   data: null,
@@ -129,10 +168,14 @@ exports.getHomePage = async (req, res) => {
       ])
     ]);
 
-    // Handle individual query results
+    // Handle individual query results and add iconClass to categories
     const homeData = {
       featuredProducts: featuredProducts.status === 'fulfilled' ? featuredProducts.value : [],
-      mainCategories: mainCategories.status === 'fulfilled' ? mainCategories.value : [],
+      mainCategories: mainCategories.status === 'fulfilled' ? 
+        mainCategories.value.map(category => ({
+          ...category,
+          iconClass: getCategoryIconClass(category.name)
+        })) : [],
       newArrivals: newArrivals.status === 'fulfilled' ? newArrivals.value : [],
       bestSellers: bestSellers.status === 'fulfilled' ? bestSellers.value : []
     };

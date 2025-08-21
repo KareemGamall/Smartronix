@@ -2,29 +2,51 @@
 
 <main>
     <section class="hero-section">
-        <div class="hero-image">
-            <img src="https://res.cloudinary.com/dtvxoju3p/image/upload/v1749877335/ChatGPT_Image_Jun_14_2025_08_01_45_AM_kghy7m.png" 
-                 alt="Smartronix Hero Image"
-                 class="img-fluid">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text ms-2">
+                    <h1 class="hero-title">TECHNOLOGY HACK YOU WON'T GET</h1>
+                    <p class="hero-subtitle">Discover the latest in cutting-edge electronics and smart devices</p>
+                    <div class="hero-buttons">
+                        <a href="/products" class="btn btn-primary hero-btn">Shop Now</a>
+                        <a href="#categories" class="btn btn-outline-primary hero-btn">Explore Categories</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="https://res.cloudinary.com/dtvxoju3p/image/upload/v1755735358/BANNAR_eacrhj.png" 
+                         alt="Smartronix Mobile Phone"
+                         class="hero-phone">
+                </div>
+            </div>
         </div>
     </section>
 
-    <section class="categories">
+    <section class="categories" id="categories">
         <h2>Categories</h2>
         <div class="categories-grid">
             <% if (mainCategories && mainCategories.length > 0) { %>
-                <% mainCategories.forEach(category => { %>
-                    <a href="/products/category/<%= category.categoryID %>" class="category-link">
-                        <div class="category-card">
-                            <img src="<%= category.imageUrl %>" alt="<%= category.name %>">
-                            <h3><%= category.name %></h3>
-                            <p><%= category.description %></p>
+    <% mainCategories.forEach(category => { %>
+        <a href="/products/category/<%= category.categoryID %>" class="category-link">
+            <div class="category-card <%= category.iconClass %>">
+                <div class="category-card-header">
+                    <div class="category-card-content">
+                        <h3 class="category-card-title"><%= category.name %></h3>
+                        <p class="category-card-subtitle"><%= category.description %></p>
+                        <div class="card-arrow">
+                            <i class="fas fa-arrow-right"></i>
                         </div>
-                    </a>
-                <% }); %>
-            <% } else { %>
-                <p>No categories available.</p>
-            <% } %>
+                    </div>
+                    <div class="card-icon">
+                        <i class="fas fa-<%= category.iconClass %>"></i>
+                    </div>
+                </div>
+                <div class="decorative-shape"></div>
+            </div>
+        </a>
+    <% }); %>
+<% } else { %>
+    <p>No categories available.</p>
+<% } %>
         </div>
     </section>
 
@@ -34,38 +56,36 @@
             <div class="row">
                 <% if (newArrivals && newArrivals.length > 0) { %>
                     <% newArrivals.forEach(product => { %>
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100">
-                                <a href="/products/details/<%= product._id %>" class="text-decoration-none">
-                                    <img src="<%= product.imageUrl %>" 
-                                         class="card-img-top" 
-                                         alt="<%= product.name %>">
-                                </a>
-                                
-                                <div class="card-body">
-                                    <a href="/products/details/<%= product._id %>" class="text-decoration-none text-dark">
-                                        <h5 class="card-title"><%= product.name %></h5>
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <a href="/products/details/<%= product._id %>" class="text-decoration-none">
+                                        <img src="<%= product.imageUrl %>" 
+                                             alt="<%= product.name %>" 
+                                             class="product-img">
                                     </a>
-                                    <p class="card-text text-muted">
-                                        <%= product.description.substring(0, 100) %>...
-                                    </p>
-                                    <p class="card-text">
-                                        <strong>Price: $<%= product.price %></strong>
-                                    </p>
-                                    <p class="card-text">
-                                        <small class="text-muted">
-                                            Category: <%= product.category ? product.category.name : 'Uncategorized' %>
-                                        </small>
-                                    </p>
                                 </div>
                                 
-                                <div class="card-footer bg-white">
-                                    <button class="btn btn-primary btn-block add-to-cart-btn" 
-                                            data-product-id="<%= product._id %>"
-                                            data-bs-toggle="tooltip"
-                                            title="Add to Cart">
-                                        <i class="fas fa-cart-plus"></i> Add To Cart
-                                    </button>
+                                <div class="product-details">
+                                    <h3 class="product-title"><%= product.name %></h3>
+                                    
+                                    <div class="product-tags">
+                                        <span class="category-name"><%= product.category ? product.category.name : 'Uncategorized' %></span>
+                                    </div>
+                                    
+                                    <p class="product-description">
+                                        <%= product.description.substring(0, 100) %>...
+                                    </p>
+                                    
+                                    <div class="product-footer">
+                                        <div class="price-section">
+                                            <div class="price-label">Price</div>
+                                            <div class="price">$<%= product.price %></div>
+                                        </div>
+                                        <button class="add-to-cart" data-product-id="<%= product._id %>">
+                                            Add to cart
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -87,43 +107,39 @@
             <div class="row">
                 <% if (bestSellers && bestSellers.length > 0) { %>
                     <% bestSellers.forEach(product => { %>
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100">
-                                <a href="/products/details/<%= product._id %>" class="text-decoration-none">
-                                    <img src="<%= product.imageUrl %>" 
-                                         class="card-img-top" 
-                                         alt="<%= product.name %>">
-                                </a>
-                                
-                                <div class="card-body">
-                                    <a href="/products/details/<%= product._id %>" class="text-decoration-none text-dark">
-                                        <h5 class="card-title"><%= product.name %></h5>
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <a href="/products/details/<%= product._id %>" class="text-decoration-none">
+                                        <img src="<%= product.imageUrl %>" 
+                                             alt="<%= product.name %>" 
+                                             class="product-img">
                                     </a>
-                                    <p class="card-text text-muted">
-                                        <%= product.description.substring(0, 100) %>...
-                                    </p>
-                                    <p class="card-text">
-                                        <strong>Price: $<%= product.price %></strong>
-                                    </p>
-                                    <p class="card-text">
-                                        <small class="text-muted">
-                                            Category: <%= product.category ? product.category.name : 'Uncategorized' %>
-                                        </small>
-                                    </p>
-                                    <p class="card-text">
-                                        <small class="text-success">
-                                            <i class="fas fa-star"></i> Popular Choice
-                                        </small>
-                                    </p>
                                 </div>
                                 
-                                <div class="card-footer bg-white">
-                                    <button class="btn btn-primary btn-block add-to-cart-btn" 
-                                            data-product-id="<%= product._id %>"
-                                            data-bs-toggle="tooltip"
-                                            title="Add to Cart">
-                                        <i class="fas fa-cart-plus"></i> Add To Cart
-                                    </button>
+                                <div class="product-details">
+                                    <h3 class="product-title"><%= product.name %></h3>
+                                    
+                                    <div class="product-tags">
+                                        <span class="category-name"><%= product.category ? product.category.name : 'Uncategorized' %></span>
+                                        <span class="category-name" style="background: var(--success); color: var(--white);">
+                                            <i class="fas fa-star"></i> Popular
+                                        </span>
+                                    </div>
+                                    
+                                    <p class="product-description">
+                                        <%= product.description.substring(0, 100) %>...
+                                    </p>
+                                    
+                                    <div class="product-footer">
+                                        <div class="price-section">
+                                            <div class="price-label">Price</div>
+                                            <div class="price">$<%= product.price %></div>
+                                        </div>
+                                        <button class="add-to-cart" data-product-id="<%= product._id %>">
+                                            Add to cart
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
